@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion au Quizz</title>
+    <link rel="stylesheet" type="text/css" href="css/styles.css" />
+</head>
+<body>
+
+<div class="container">
+    <h2>Bienvenue sur QuizzSpot</h2>
+    <h3>Pour rejoindre un quizz,<br /> veuillez entrer son code.</h3>
+    <form action="selection.php" method="get"> <!-- Quand API et BDD fonctionelle, mettre en place la connexion via code-->
+        <label for="code">Code de Participation :</label> 
+        <input type="text" id="code" name="code" placeholder="Entrez votre code" required>
+        <input type="submit" value="Se Connecter">
+        <a href="URL">Vous êtes formateur ? Cliquez ici</a>
+        <!-- La page envoie une requete get avec le code en argument, l'api recoit le code, vérifie dans la BDD si le code existe,
+            et renvoie ensuite une réponse json avec comme contenu true ou false si le code est bon, et la session de quizz correspondante (les questionsn, les participants)-->
+    </form>
+</div>
+
+</body>
+</html>
