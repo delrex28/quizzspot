@@ -1,0 +1,493 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;400;500;600;700;800&display=swap');
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+    color: #fff;
+}
+
+body{
+    background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(images/fond.jpeg);
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: center;
+}
+
+header{
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    height: 60px;
+    width: 100%;
+    position: fixed;
+    background: rgba(0,0,0,0.3);
+    /* backdrop-filter: blur(10px); */
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+header::before{
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    z-index: -1;
+    backdrop-filter: blur(10px);
+}
+
+header h2{
+    font-size: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+header h2 img{
+    height: 10%;
+    width: 10%;
+    margin-right: 5px;
+    align-items: center;
+}
+
+header h2 a{
+    text-decoration: none;
+    color: #ff8f32;
+}
+
+header h2 ion-icon{
+    margin-right: 5px;
+    color: #ff8f32;
+}
+
+nav{
+    width: 600px;
+    display: flex;
+    justify-content: space-between;
+}
+
+nav a{
+    text-decoration: none;
+    color: #fff;
+    font-weight: 500;
+    font-size: 20px;
+    transition: 0.5s;
+}
+
+nav a:hover{
+    color: #ff8f32;
+    scale: 1.1;
+}
+
+.searchbar{
+    display: flex;
+    align-items: center;
+    width: 350px;
+}
+
+.searchbar input{
+    width: 100%;
+    padding: 7px 10px;
+    border-radius: 5px;
+    border: 1px solid #ff8f32;
+    background: transparent;
+    outline: none;
+}
+
+.searchbar input::placeholder{
+    color: #ddd;
+}
+
+.searchbar button{
+    height: 36px;
+    width: 40px;
+    margin-left: -15px;
+    background: #ff6624;
+    outline: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 19px;
+}
+
+section{
+    min-height: 100vh;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.left{
+    width: 45%;
+}
+
+.left h1{
+    font-size: 76px;
+    letter-spacing: 3px;
+    transition: 0.5s;
+}
+
+.left h1 span{
+    color: #ff6624;
+    transition: 0.5s;
+    display: flex;
+}
+
+.left h1:hover{
+    filter: brightness(1.3);
+    scale: 1.1;
+    color: rgb(255, 0, 0);
+}
+
+.left h1 span:hover{
+    filter: brightness(1.3);
+    scale: 1.1;
+}
+
+.left button{
+    margin-top: 20px;
+    padding: 10px;
+    width: 200px;
+    background: #ff6624;
+    font-size: 20px;
+    font-weight: 500;
+    border: none;
+    outline: none;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.5s;
+}
+
+.left button:hover{
+    filter: brightness(1.3);
+    scale: 1.1;
+}
+
+.left p{
+    font-size: 15px;
+}
+
+.right{
+    width: 400px;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    border-radius: 5px;
+}
+
+form{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.inputbox{
+    width: 90%;
+    position: relative;
+}
+
+.inputbox input{
+    width: 100%;
+    padding: 15px 35px;
+    background: transparent;
+    border: 1px solid #ff6624;
+    border-radius: 5px;
+    display: flex;
+}
+
+.inputbox ion-icon{
+    position: absolute;
+    top: 15px;
+    font-size: 20px;
+    left: 10px;
+    color: #ff6624;
+}
+
+.forgot{
+    display: flex;
+    justify-content: space-between;
+    width: 85%;
+    align-items: center;
+    font-size: 13px;
+}
+
+.right button{
+    width: 85%;
+    padding: 10px;
+    border: none;
+    background: #ff6624;
+    border-radius: 5px;
+    font-size: 10px;
+    cursor: pointer;
+    transition: 0.5s;
+}
+
+.right button:hover{
+    filter: brightness(1.1);
+}
+
+.another{
+    width: 100%;
+    text-align: center;
+}
+
+.btns{
+    margin-top: 20px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.btns button{
+    margin-top: 20px;
+    background: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btns img{
+    width: 20px;
+    margin-right: 10px;
+}
+
+.menu{
+    display: none;
+}
+
+footer{
+    position: relative;
+    width: 100%;
+    background: #333;
+    min-height: 100px;
+    padding: 20px 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+footer .social_icon,
+footer .footer_menu{
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 10px 0;
+    flex-wrap: wrap;
+}
+
+footer .social_icon li,
+footer .footer_menu li{
+    list-style: none;
+}
+
+footer .social_icon li a{
+    font-size: 2em;
+    color: #fff;
+    margin: 0 10px;
+    display: inline-block;
+    transition: 0.5s;
+}
+
+footer .social_icon li a:hover{
+    transform: translateY(-10px);
+}
+
+footer .footer_menu li a{
+    font-size: 1.2em;
+    color: #fff;
+    margin: 0 10px;
+    display: inline-block;
+    text-decoration: none;
+    opacity: 0.75;
+}
+
+footer .footer_menu li a:hover{
+    opacity: 1;
+}
+
+footer p{
+    color: #fff;
+    text-align: center;
+    margin-top: 15px;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+footer .wave{
+    position: absolute;
+    top: -100px;
+    left: 0;
+    width: 100%;
+    height: 100px;
+    background: url(images/wave.png);
+    background-size: 1000px 100px;
+}
+
+footer .wave#wave1{
+    z-index: 1000;
+    opacity: 1;
+    bottom: 0;
+    animation: animateWave 4s linear infinite;
+}
+
+footer .wave#wave2{
+    z-index: 999;
+    opacity: 0.5;
+    bottom: 10px;
+    animation: animateWave_02 4s linear infinite;
+}
+
+footer .wave#wave3{
+    z-index: 1000;
+    opacity: 0.2;
+    bottom: 15px;
+    animation: animateWave 3s linear infinite;
+}
+
+footer .wave#wave4{
+    z-index: 999;
+    opacity: 0.7;
+    bottom: 20px;
+    animation: animateWave_02 3s linear infinite;
+}
+
+@keyframes animateWave{
+    0%
+    {
+        background-position-x: 1000px;
+    }
+    100%
+    {
+        background-position-x: 0px;
+    }
+}
+
+@keyframes animateWave_02{
+    0%
+    {
+        background-position-x: 0px;
+    }
+    100%
+    {
+        background-position-x: 1000px;
+    }
+}
+
+@keyframes push_401 {
+  0% , 50% {
+    transform: translate(-50% , 0%)  scale(1)
+  }
+
+  100% {
+    transform: translate(-50%, -100%) scale(0)
+  }
+}
+
+@media (max-width: 1200px){
+    header{
+        justify-content: space-between;
+        padding: 20px;
+    }
+
+    section{
+        margin-top: 70px;
+        flex-direction: column;
+    }
+    
+    .left{
+        width: 80%;
+    }
+
+    .right{
+        width: 80%;
+        margin-top: 60px;
+        margin-bottom: 30px;
+    }
+    
+    nav{
+        flex-direction: column;
+        position: fixed;
+        background: rgba(0,0,0,0.5);
+        width: 100%;
+        top: 116px;
+        left: -100%;
+        text-align: center;
+        backdrop-filter: blur(10px);
+        visibility: hidden;
+        opacity: 0;
+        transition: 0.5s;
+    }
+
+    nav.active{
+        visibility: visible;
+        opacity: 1;
+        left: 0;
+        transition-delay: 0.2s;
+    }
+    .nav a{
+        padding: 20px;
+    }
+
+    .searchbar{
+        position: fixed;
+        left: -100%;
+        top: 60px;
+        width: 100%;
+        padding: 10px 20px;
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(10px);
+        visibility: 0;
+        opacity: 0;
+        transition: 0.5s;
+    }
+
+    .searchbar.active{
+        visibility: visible;
+        opacity: 1;
+        left: 0;
+    }
+
+    .menu{
+        display: block;
+    }
+
+    .menu ion-icon{
+        font-size: 35px;
+        cursor: pointer;
+    }
+}
+
+@media (max-width: 570px){
+    .left h1{
+        font-size: 60px;
+    }
+
+    .left p{
+        font-size: 17px;
+    }
+}
+
+@media (max-width: 400px){
+    .forgot{
+        font-size: 17px;
+    }
+}

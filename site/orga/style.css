@@ -1,0 +1,318 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;400;500;600;700;800&display=swap');
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+    color: #fff;
+}
+
+body{
+    background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(images/fond.jpeg);
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: center;
+}
+
+header{
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    height: 60px;
+    width: 100%;
+    position: fixed;
+    background: rgba(0,0,0,0.3);
+    /* backdrop-filter: blur(10px); */
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+header::before{
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    z-index: -1;
+    backdrop-filter: blur(10px);
+}
+
+header h2{
+    font-size: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+header h2 img{
+    height: 10%;
+    width: 10%;
+    margin-right: 5px;
+    align-items: center;
+}
+
+header h2 a{
+    text-decoration: none;
+    color: #ff8f32;
+}
+
+header h2 ion-icon{
+    margin-right: 5px;
+    color: #ff8f32;
+}
+
+nav{
+    width: 600px;
+    display: flex;
+    justify-content: space-between;
+}
+
+nav a{
+    text-decoration: none;
+    color: #fff;
+    font-weight: 500;
+    font-size: 20px;
+    transition: 0.5s;
+}
+
+nav a:hover{
+    color: #ff8f32;
+    scale: 1.1;
+}
+
+.searchbar{
+    display: flex;
+    align-items: center;
+    width: 350px;
+}
+
+.searchbar input{
+    width: 100%;
+    padding: 7px 10px;
+    border-radius: 5px;
+    border: 1px solid #ff8f32;
+    background: transparent;
+    outline: none;
+}
+
+.searchbar input::placeholder{
+    color: #ddd;
+}
+
+.searchbar button{
+    height: 36px;
+    width: 40px;
+    margin-left: -15px;
+    background: #ff6624;
+    outline: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 19px;
+}
+
+.menu{
+    display: none;
+}
+
+section{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    width: 100%;
+}
+
+h2{
+    text-align: center;
+    font-size: 2em;
+    color: #fff;
+}
+
+.form-box{
+    width: 400px;
+    height: 450px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 20px;
+    backdrop-filter: blur(5px);
+}
+
+.input-box {
+    position: relative;
+    margin: 30px 0px;
+    width: 310px;
+    border-bottom: 2px solid #fff;
+}
+
+.input-box label {
+    position: absolute;
+    left: 5px;
+    top: 50%;
+    transform: translateY(-45%);
+    font-size: 1em;
+    color: #fff;
+    pointer-events: none;
+    transition: 0.5s;
+}
+
+input:focus~label,
+input:valid~label{
+    top: -5px;
+}
+
+.input-box input{
+    width: 100%;
+    height: 50px;
+    background: transparent;
+    outline: none;
+    border: none;
+    padding: 0 35px 0 5px;
+    font-size: 1em;
+    color: #fff;
+}
+
+.input-box ion-icon{
+    position: absolute;
+    top: 20px;
+    right: 8px;
+    color: #fff;
+    font-size: 1.2;
+}
+.forget{
+    margin: -15px 0 30px;
+    font-size: 0.9;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+}
+
+.forget label a{
+    color: #fff;
+    text-decoration: none;
+}
+
+.forget label a:hover{
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.forget label input {
+    margin-right: 3px;
+    transform: translateY(2px);
+    background: transparent;
+}
+
+button{
+    width: 100%;
+    height: 40px;
+    border-radius: 40px;
+    background: #07286e;
+    outline: none;
+    border: none;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+button:hover{
+    opacity: 0.7;
+}
+
+@media (max-width: 1200px){
+    header{
+        justify-content: space-between;
+        padding: 20px;
+    }
+
+    section{
+        margin-top: 60px;
+        flex-direction: column;
+    }
+    
+    .left{
+        width: 80%;
+    }
+
+    .right{
+        width: 80%;
+        margin-top: 60px;
+        margin-bottom: 30px;
+    }
+    
+    nav{
+        flex-direction: column;
+        position: fixed;
+        background: rgba(0,0,0,0.5);
+        width: 100%;
+        top: 116px;
+        left: -100%;
+        text-align: center;
+        backdrop-filter: blur(10px);
+        visibility: hidden;
+        opacity: 0;
+        transition: 0.5s;
+    }
+
+    nav.active{
+        visibility: visible;
+        opacity: 1;
+        left: 0;
+        transition-delay: 0.2s;
+    }
+    .nav a{
+        padding: 20px;
+    }
+
+    .searchbar{
+        position: fixed;
+        left: -100%;
+        top: 60px;
+        width: 100%;
+        padding: 10px 20px;
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(10px);
+        visibility: 0;
+        opacity: 0;
+        transition: 0.5s;
+    }
+
+    .searchbar.active{
+        visibility: visible;
+        opacity: 1;
+        left: 0;
+    }
+
+    .menu{
+        display: block;
+    }
+
+    .menu ion-icon{
+        font-size: 35px;
+        cursor: pointer;
+    }
+}
+
+@media (max-width: 570px){
+    .left h1{
+        font-size: 60px;
+    }
+
+    .left p{
+        font-size: 17px;
+    }
+}
+
+@media (max-width: 400px){
+    .forgot{
+        font-size: 17px;
+    }
+}

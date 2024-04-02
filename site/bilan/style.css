@@ -1,0 +1,237 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;400;500;600;700;800&display=swap');
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+    color: #fff;
+}
+
+body{
+    background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(images/fond.jpeg);
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: center;
+}
+
+video{
+    width: 100%;
+    height: 100vh;
+}
+header{
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    height: 60px;
+    width: 100%;
+    position: fixed;
+    background: rgba(0,0,0,0.3);
+    /* backdrop-filter: blur(10px); */
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+header::before{
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    z-index: -1;
+    backdrop-filter: blur(10px);
+}
+
+header h2{
+    font-size: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+header h2 img{
+    height: 10%;
+    width: 10%;
+    margin-right: 5px;
+    align-items: center;
+}
+
+header h2 a{
+    text-decoration: none;
+    color: #ff8f32;
+}
+
+header h2 ion-icon{
+    margin-right: 5px;
+    color: #ff8f32;
+}
+
+nav{
+    width: 600px;
+    display: flex;
+    justify-content: space-between;
+}
+
+nav a{
+    text-decoration: none;
+    color: #fff;
+    font-weight: 500;
+    font-size: 20px;
+    transition: 0.5s;
+}
+
+nav a:hover{
+    color: #ff8f32;
+    scale: 1.1;
+}
+
+.searchbar{
+    display: flex;
+    align-items: center;
+    width: 350px;
+}
+
+.searchbar input{
+    width: 100%;
+    padding: 7px 10px;
+    border-radius: 5px;
+    border: 1px solid #ff8f32;
+    background: transparent;
+    outline: none;
+}
+
+.searchbar input::placeholder{
+    color: #ddd;
+}
+
+.searchbar button{
+    height: 36px;
+    width: 40px;
+    margin-left: -15px;
+    background: #ff6624;
+    outline: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 19px;
+}
+
+.disconnect{
+    align-items: center;
+    text-decoration: none;
+    margin-top: 50vh;
+    margin-left: 45%;
+}
+
+.disconnect button{
+    background: #ff6624;
+    display: flex;
+    cursor: pointer;
+    font-size: 20px;
+    border-radius: 19px;
+    align-items: center;
+}
+
+.disconnect button a{
+    text-decoration: none;
+}
+
+
+.menu{
+    display: none;
+}
+
+
+
+@media (max-width: 1200px){
+    header{
+        justify-content: space-between;
+        padding: 20px;
+    }
+
+    section{
+        margin-top: 70px;
+        flex-direction: column;
+    }
+    
+    .left{
+        width: 80%;
+    }
+
+    .right{
+        width: 80%;
+        margin-top: 60px;
+        margin-bottom: 30px;
+    }
+    
+    nav{
+        flex-direction: column;
+        position: fixed;
+        background: rgba(0,0,0,0.5);
+        width: 100%;
+        top: 116px;
+        left: -100%;
+        text-align: center;
+        backdrop-filter: blur(10px);
+        visibility: hidden;
+        opacity: 0;
+        transition: 0.5s;
+    }
+
+    nav.active{
+        visibility: visible;
+        opacity: 1;
+        left: 0;
+        transition-delay: 0.2s;
+    }
+    .nav a{
+        padding: 20px;
+    }
+
+    .searchbar{
+        position: fixed;
+        left: -100%;
+        top: 60px;
+        width: 100%;
+        padding: 10px 20px;
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(10px);
+        visibility: 0;
+        opacity: 0;
+        transition: 0.5s;
+    }
+
+    .searchbar.active{
+        visibility: visible;
+        opacity: 1;
+        left: 0;
+    }
+
+    .menu{
+        display: block;
+    }
+
+    .menu ion-icon{
+        font-size: 35px;
+        cursor: pointer;
+    }
+}
+
+@media (max-width: 570px){
+    .left h1{
+        font-size: 60px;
+    }
+
+    .left p{
+        font-size: 17px;
+    }
+}
+
+@media (max-width: 400px){
+    .forgot{
+        font-size: 17px;
+    }
+}
