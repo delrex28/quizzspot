@@ -9,7 +9,7 @@
 }
 
 body{
-    background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(images/fond.jpeg);
+    background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(images/fond-2.jpeg);
     background-size: cover;
     background-attachment: fixed;
     background-position: center;
