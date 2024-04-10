@@ -1,3 +1,12 @@
+<?php
+// Vérifier si le token et le numéro de la question sont spécifiés dans les données GET et le cookie
+if(!isset($_COOKIE['token']) || !isset($_GET['num_question'])) {
+    header('Location: connexion.html'); // Redirection vers la page de connexion
+    exit; 
+}
+
+// Continuer le reste du script si les données GET sont présentes
+?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -16,18 +25,13 @@
             <button onclick="submitAnswer('3')">3</button>
             <button onclick="submitAnswer('4')">4</button>
         </div>
+        <?php
+        // Afficher le token de l'utilisateur à des fins de débogage
+        $token = $_COOKIE['token'];
+        echo "<p>DEBUG :  VOTRE TOKEN EST $token";
+        ?>
     </div>
-    <?php
-        function getNum() {
-            // Vérifiez si le paramètre 'num_question' est défini dans l'URL
-            if(isset($_GET['num_question'])) {
-                // Récupérez et retournez la valeur de 'num_question'
-                return $_GET['num_question'];
-            } else {
-                return -1; //-1 indique une valeur invalide ou non définie
-            }
-        }
-    ?>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script>
 
@@ -36,7 +40,10 @@
             return "<?php echo isset($_COOKIE['token']) ? $_COOKIE['token'] : ''; ?>";
         }
 
-
+        // Fonction pour récupérer le numéro de la question à partir des données GET
+        function getNum() {
+            return "<?php echo isset($_GET['num_question']) ? $_GET['num_question'] : ''; ?>";
+        }
 
         // Fonction pour soumettre la réponse à la question
         function submitAnswer(answer) {
@@ -50,10 +57,11 @@
                 $.ajax({
                     url: 'reponse.php', // URL de l'API pour soumettre la réponse
                     method: 'POST',
-                    data: { token: token, answer: answer, num_question : num_question },
+                    data: { token: token, answer: answer, num_question: num_question },
                     success: function(response) {                        
-                        console.log('Réponse soumise avec succès : ' + answer + " num question" +  num_question + " "+ token);
-                        // Rediriger l'utilisateur vers la prochaine question ou une autre page
+                        console.log('Réponse soumise avec succès : ' + answer + " num question " + num_question + " " + token);
+                        // Rediriger l'utilisateur vers la page d'attente de la prochaine question
+                        window.location.href = 'attente_question.php?num_question=' + encodeURIComponent(num_question);
                     },
                     error: function(xhr, status, error) {
                         // Gérer les erreurs en cas d'échec de la requête AJAX
