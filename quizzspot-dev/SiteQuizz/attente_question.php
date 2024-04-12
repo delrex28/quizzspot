@@ -1,3 +1,12 @@
+<?php
+// Vérifier si le token et le numéro de la question sont spécifiés dans les données GET et le cookie
+if(!isset($_COOKIE['token']) || !isset($_GET['num_question'])) {
+    header('Location: connexion.html'); // Redirection vers la page de connexion
+    exit; 
+}
+
+
+?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -9,7 +18,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Attente de la prochaine question</h1>
+        <h2>En attente de la prochaine question...</h2>
         <?php
             // Vérifier si le numéro de la question a été spécifié en tant qu'argument GET
             if(isset($_GET['num_question'])) {
