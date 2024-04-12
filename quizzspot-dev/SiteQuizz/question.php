@@ -4,9 +4,28 @@ if(!isset($_COOKIE['token']) || !isset($_GET['num_question'])) {
     header('Location: connexion.html'); // Redirection vers la page de connexion
     exit; 
 }
+//Vérifier si l'apprenant à déjà répondu à la question
+// Récupérer le token actuellement stocké dans un cookie
+// $token = $_COOKIE['token'];
 
-// Continuer le reste du script si les données GET sont présentes
+// // URL de l'endpoint de l'API avec le code en argument
+// $apiEndpoint = "http://localhost/SiteQuizz/json_true_si_token.php?token=" . urlencode($token);
+
+// // Récupérer le contenu JSON de l'endpoint de l'API
+// $json = file_get_contents($apiEndpoint);
+// $data = json_decode($json, true);
+
+// // Vérifier la réponse de l'API
+// if(isset($data['repondu']) && $data['repondu'] === "true") {
+//     // L'apprenant a déjà répondu à cette question, il est redirigé
+//     header('Location: attente_question.php?num_question=' . urlencode($_GET['num_question']));
+//     exit;
+// } else {
+//     // L'apprenant n'a pas encore répondu à cette question, on continue
+// }
+
 ?>
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -20,10 +39,10 @@ if(!isset($_COOKIE['token']) || !isset($_GET['num_question'])) {
     <div class="container">
         <h1>Répondre à la question</h1>
         <div class="buttons">
-            <button onclick="submitAnswer('1')">1</button>
-            <button onclick="submitAnswer('2')">2</button>
-            <button onclick="submitAnswer('3')">3</button>
-            <button onclick="submitAnswer('4')">4</button>
+            <button onclick="postReponse('1')">1</button>
+            <button onclick="postReponse('2')">2</button>
+            <button onclick="postReponse('3')">3</button>
+            <button onclick="postReponse('4')">4</button>
         </div>
         <?php
         // Afficher le token de l'utilisateur à des fins de débogage
@@ -46,7 +65,7 @@ if(!isset($_COOKIE['token']) || !isset($_GET['num_question'])) {
         }
 
         // Fonction pour soumettre la réponse à la question
-        function submitAnswer(answer) {
+        function postReponse(reponse) {
             // Récupérer le token de l'apprenant depuis le cookie
             var token = getToken();
             var num_question = getNum();
@@ -57,9 +76,9 @@ if(!isset($_COOKIE['token']) || !isset($_GET['num_question'])) {
                 $.ajax({
                     url: 'reponse.php', // URL de l'API pour soumettre la réponse
                     method: 'POST',
-                    data: { token: token, answer: answer, num_question: num_question },
+                    data: { token: token, reponse: reponse, num_question: num_question },
                     success: function(response) {                        
-                        console.log('Réponse soumise avec succès : ' + answer + " num question " + num_question + " " + token);
+                        console.log('Réponse soumise avec succès : ' + reponse + " num question " + num_question + " " + token);
                         // Rediriger l'utilisateur vers la page d'attente de la prochaine question
                         window.location.href = 'attente_question.php?num_question=' + encodeURIComponent(num_question);
                     },
