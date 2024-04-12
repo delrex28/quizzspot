@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -43,7 +41,7 @@
                     if (response.quizz_debut == true) {
                         $('#status').text('Le quizz a commencé !');
                         // Rediriger l'utilisateur vers la page du quizz
-                        window.location.href = 'question.php?num_question=1';
+                        window.location.href = 'question.php';
                     } else {
                         $('#status').text('En attente du début du quizz...');
                     }
