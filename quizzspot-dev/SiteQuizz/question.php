@@ -4,25 +4,31 @@ if(!isset($_COOKIE['token']) || !isset($_GET['num_question'])) {
     header('Location: connexion.html'); // Redirection vers la page de connexion
     exit; 
 }
-//Vérifier si l'apprenant à déjà répondu à la question
+//Vérifier si l'apprenant à déjà répondu à la question, et obtient le num de la question
 // Récupérer le token actuellement stocké dans un cookie
-// $token = $_COOKIE['token'];
+$token = $_COOKIE['token'];
 
-// // URL de l'endpoint de l'API avec le code en argument
-// $apiEndpoint = "http://localhost/SiteQuizz/json_true_si_token.php?token=" . urlencode($token);
+// URL de l'endpoint de l'API avec le code en argument
+$apiEndpoint = "http://localhost/SiteQuizz/json_true_si_token.php?token=" . urlencode($token);
 
-// // Récupérer le contenu JSON de l'endpoint de l'API
-// $json = file_get_contents($apiEndpoint);
-// $data = json_decode($json, true);
+// Récupérer le contenu JSON de l'endpoint de l'API
+$json = file_get_contents($apiEndpoint);
+$data = json_decode($json, true);
 
-// // Vérifier la réponse de l'API
-// if(isset($data['repondu']) && $data['repondu'] === "true") {
-//     // L'apprenant a déjà répondu à cette question, il est redirigé
-//     header('Location: attente_question.php?num_question=' . urlencode($_GET['num_question']));
-//     exit;
-// } else {
-//     // L'apprenant n'a pas encore répondu à cette question, on continue
-// }
+// Vérifier la réponse de l'API
+if(isset($data['repondu']) && $data['repondu'] === "true") {
+    // L'apprenant a déjà répondu à cette question, il est redirigé vers la page d'attente entre questions
+    header('Location: attente_question.php');
+    exit;
+} elseif (isset($data['repondu']) && $data['repondu'] === "false" && isset($data['num_question'])) {
+    // L'apprenant n'a pas encore répondu à cette question, on continue
+    
+} else {
+    // Erreur, redirection vers la page de connexion
+    header('Location: connexion.html');
+    exit;
+}
+
 
 ?>
 
