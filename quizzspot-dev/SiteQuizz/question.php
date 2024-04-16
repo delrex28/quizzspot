@@ -1,15 +1,13 @@
 <?php
-// Vérifier si le token et le numéro de la question sont spécifiés dans les données GET et le cookie
-if(!isset($_COOKIE['token']) || !isset($_GET['num_question'])) {
+// Vérifier si le token est spécifié
+if(!isset($_COOKIE['token'])) {
     header('Location: connexion.html'); // Redirection vers la page de connexion
     exit; 
 }
-//Vérifier si l'apprenant à déjà répondu à la question, et obtient le num de la question
-// Récupérer le token actuellement stocké dans un cookie
+//Vérifier si l'apprenant à déjà répondu à la question
 $token = $_COOKIE['token'];
-
-// URL de l'endpoint de l'API avec le code en argument
-$apiEndpoint = "http://localhost/SiteQuizz/json_true_si_token.php?token=" . urlencode($token);
+// URL de l'endpoint de l'API avec le token  en argument
+$apiEndpoint = "http://localhost/SiteQuizz/json_quest_check.php?token=" . urlencode($token);
 
 // Récupérer le contenu JSON de l'endpoint de l'API
 $json = file_get_contents($apiEndpoint);
@@ -63,11 +61,6 @@ if(isset($data['repondu']) && $data['repondu'] === "true") {
         // Fonction pour récupérer le token à partir du cookie
         function getToken() {
             return "<?php echo isset($_COOKIE['token']) ? $_COOKIE['token'] : ''; ?>";
-        }
-
-        // Fonction pour récupérer le numéro de la question à partir des données GET
-        function getNum() {
-            return "<?php echo isset($_GET['num_question']) ? $_GET['num_question'] : ''; ?>";
         }
 
         // Fonction pour soumettre la réponse à la question
