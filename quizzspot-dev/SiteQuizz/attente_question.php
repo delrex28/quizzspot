@@ -1,6 +1,6 @@
 <?php
-// Vérifier si le token et le numéro de la question sont spécifiés dans les données GET et le cookie
-if(!isset($_COOKIE['token']) || !isset($_GET['num_question'])) {
+// Vérifier si l'utilisateur a un token
+if(!isset($_COOKIE['token'])) {
     header('Location: connexion.html'); // Redirection vers la page de connexion
     exit; 
 }
@@ -18,17 +18,8 @@ if(!isset($_COOKIE['token']) || !isset($_GET['num_question'])) {
 </head>
 <body>
     <div class="container">
+        <h3>Votre réponse à été enregistrée</h3>
         <h2>En attente de la prochaine question...</h2>
-        <?php
-            // Vérifier si le numéro de la question a été spécifié en tant qu'argument GET
-            if(isset($_GET['num_question'])) {
-                $num_question = $_GET['num_question'];
-                echo "<p>Réponse pour la question $num_question enregistrée.</p>";
-            } else {
-                echo "<p>Numéro de question non spécifié.</p>";
-            }
-        ?>
-        <p>Attendez la prochaine question...</p>
     </div>
 </body>
 </html>
