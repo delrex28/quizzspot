@@ -35,7 +35,7 @@
                             // Afficher la liste déroulante des participants
                             echo '<div class="form-group">';
                             echo '<label for="nomcomplet">Sélectionnez votre prénom et nom :</label>';
-                            echo '<select name="nomcomplet">';
+                            echo '<select name="nomcomplet" id="nomcomplet" required>';
                             echo '<option value=""></option>';
 
                             // Parcourir les participants et les insérer dans la liste déroulante
@@ -48,7 +48,7 @@
                             echo '</div>';
                         } else {
                             // Aucun participant trouvé dans le JSON
-                            echo "<p>Tout les participants inscrit sont déjà connectés</p>";
+                            echo "<p>Tous les participants inscrits sont déjà connectés</p>";
                         }
                     } else {
                         // Code invalide : Afficher un bouton pour retourner à la page précédente
@@ -64,5 +64,48 @@
             <?php endif; ?>
         </form>
     </div>    
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        // Lorsqu'un nom est sélectionné dans la liste
+        $('#nomcomplet').on('change', function() {
+            var selectedName = $(this).val();
+            if (selectedName !== '') {
+                // Appel à l'API pour vérifier la disponibilité de l'apprenant
+                $.ajax({
+                    url: 'http://localhost/SiteQuizz/verif_apprenant.php?nomcomplet=' + encodeURIComponent(selectedName),
+                    method: 'GET',
+                    success: function(response) {
+                        if (response.result === 'true') {
+                            // L'apprenant est disponible, (ré)activer le bouton
+                            $('button[type="submit"]').prop('disabled', false);
+                            // Envoyer une autre requête pour marquer l'apprenant comme indisponible
+                            $.ajax({
+                                url: 'http://localhost/SiteQuizz/indispo_apprenant.php?nomcomplet=' + encodeURIComponent(selectedName),
+                                method: 'GET',
+                                success: function(response) {
+                                    // Rediriger vers la page d'attente
+                                    $('#loginForm').submit();
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('Erreur lors de la mise à jour de la disponibilité de l\'apprenant : ' + error);
+                                }
+                            });
+                        } else {
+                            // L'apprenant n'est pas disponible
+                            alert('Cet apprenant est déjà connecté.');
+                            // Désactiver le bouton de soumission du formulaire
+                            $('button[type="submit"]').prop('disabled', true);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Erreur lors de la vérification de la disponibilité de l\'apprenant : ' + error);
+                    }
+                });
+            }
+        });
+    });
+    </script>
 </body>
 </html>
