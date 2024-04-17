@@ -62,6 +62,22 @@ if(isset($data['repondu']) && $data['repondu'] === "true") {
         function getToken() {
             return "<?php echo isset($_COOKIE['token']) ? $_COOKIE['token'] : ''; ?>";
         }
+        // Fonction pour récupérer le numéro de la question en cours depuis l'API
+        function getNum() {
+            var num_question = null;
+            $.ajax({
+                url: 'localhost/num_question.json', // URL de l'API pour obtenir le numéro de la question en cours
+                method: 'GET',
+                async: false, // Utilisation de la synchronisation pour attendre la réponse de l'API
+                success: function(response) {
+                    num_question = response.num_question;
+                },
+                error: function(xhr, status, error) {
+                    console.error('Erreur lors de la récupération du numéro de la question : ' + error);
+                }
+            });
+            return num_question;
+}
 
         // Fonction pour soumettre la réponse à la question
         function postReponse(reponse) {
@@ -79,7 +95,7 @@ if(isset($data['repondu']) && $data['repondu'] === "true") {
                     success: function(response) {                        
                         console.log('Réponse soumise avec succès : ' + reponse + " num question " + num_question + " " + token);
                         // Rediriger l'utilisateur vers la page d'attente de la prochaine question
-                        window.location.href = 'attente_question.php?num_question=' + encodeURIComponent(num_question);
+                        window.location.href = 'attente_question.php';
                     },
                     error: function(xhr, status, error) {
                         // Gérer les erreurs en cas d'échec de la requête AJAX
