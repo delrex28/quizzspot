@@ -18,7 +18,7 @@
             $selected_name = $_GET['nomcomplet'];
             echo "<p>Connecté en tant que : $selected_name</p>";
             $token = uniqid();
-            setcookie("token", $token, time() + (43200), "/"); //Token dans cookie Valide pendant 1/2 journée
+            setcookie("token", $token, time() + (7200), "/"); //Token dans cookie Valide pendant 2h
             // Appeler le script pour insérer le token dans la base de données
             echo "<script>insertToken('$token', '$selected_name')</script>";
             echo "<p>Le Quizz commencera sous peu.</p>";
