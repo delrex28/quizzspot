@@ -67,6 +67,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script>
+    //Vérifier si l'apprenant est disponible, et le marquer indisponible après sélection
     $(document).ready(function() {
         // Lorsqu'un nom est sélectionné dans la liste
         $('#nomcomplet').on('change', function() {
