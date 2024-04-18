@@ -1,4 +1,3 @@
-
 <?php
 //En attendant l'API, ce php renvoie un json dans le format attendu après avoir entré un code de participation
 $code = $_GET['code'];
