@@ -9,28 +9,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>Bienvenue !</h1>
-        <?php
-        // Vérifier si un nom a été sélectionné
-        if (isset($_GET['nomcomplet'])) {
-            // Récupérer le nom sélectionné
-            $selected_name = $_GET['nomcomplet'];
-            echo "<p>Connecté en tant que : $selected_name</p>";
-            $token = uniqid();
-            setcookie("token", $token, time() + (7200), "/"); //Token dans cookie Valide pendant 2h
-            // Appeler le script pour insérer le token dans la base de données
-            echo "<script>insertToken('$token', '$selected_name')</script>";
-            echo "<p>Le Quizz commencera sous peu.</p>";
-            echo "<p>DEBUG :  VOTRE TOKEN EST $token";
-            echo "<p>Vous n'êtes pas $selected_name ? <a href='connexion.html'>Retour</a></p>";
-            #Ne pas oublier de rajouter une requete pour remettre le nom comme dispo
-        } else {
-            echo "<p>Vous n'êtes pas connecté. <a href='selection.php'>Sélectionnez votre nom</a></p>";
-        }
-        ?>
-        <p id="status">En attente du début du quizz...</p>
-    </div>
     <script>
         // Fonction pour vérifier le statut du quizz
         function checkQuizzStatus() {
@@ -54,7 +32,7 @@
 
 
         // Fonction pour insérer le token dans la base de données via l'API
-        function insertToken(token) {
+        function insertToken(token, nomcomplet) {
             $.ajax({
                 url: 'insert_token.php', // URL de l'API pour l'insertion du token
                 method: 'POST',
@@ -68,5 +46,28 @@
             });
         }
     </script>
+    <div class="container">
+        <h1>Bienvenue !</h1>
+        <?php
+        // Vérifier si un nom a été sélectionné
+        if (isset($_GET['nomcomplet'])) {
+            // Récupérer le nom sélectionné
+            $selected_name = $_GET['nomcomplet'];
+            echo "<p>Connecté en tant que : $selected_name</p>";
+            $token = uniqid();
+            setcookie("token", $token, time() + (7200), "/"); //Token dans cookie Valide pendant 2h
+            // Appeler le script pour insérer le token dans la base de données
+            echo "<script>insertToken('$token', '$selected_name')</script>";
+            echo "<p>Le Quizz commencera sous peu.</p>";
+            echo "<p>DEBUG :  VOTRE TOKEN EST $token";
+            echo "<p>Vous n'êtes pas $selected_name ? <a href='connexion.html'>Retour</a></p>";
+            #Ne pas oublier de rajouter une requete pour remettre le nom comme dispo
+        } else {
+            echo "<p>Vous n'êtes pas connecté. <a href='selection.php'>Sélectionnez votre nom</a></p>";
+        }
+        ?>
+        <p id="status">En attente du début du quizz...</p>
+    </div>
+    
 </body>
 </html>
