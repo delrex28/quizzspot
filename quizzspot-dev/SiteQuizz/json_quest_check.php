@@ -1,10 +1,8 @@
 <?php
 
-// Vérifier si le token est présent dans les données POST
+// Vérifier si le token est présent dans les données GET
 if(isset($_GET['token'])) {
-    // Récupérer le token depuis les données POST
     $token = $_GET['token'];
-
     // Générer un JSON de réponse avec le token reçu
     $response = array(
         'repondu' => 'false', //false, l'apprenant n'a pas répondu à la question
