@@ -40,21 +40,6 @@ if(isset($data['repondu']) && $data['repondu'] === "true") {
     <link rel="stylesheet" type="text/css" href="css/styles.css" />
 </head>
 <body>
-    <div class="container">
-        <h1>Répondre à la question</h1>
-        <div class="buttons">
-            <button onclick="postReponse('1')">1</button>
-            <button onclick="postReponse('2')">2</button>
-            <button onclick="postReponse('3')">3</button>
-            <button onclick="postReponse('4')">4</button>
-        </div>
-        <?php
-        // Afficher le token de l'utilisateur à des fins de débogage
-        $token = $_COOKIE['token'];
-        echo "<p>DEBUG :  VOTRE TOKEN EST $token";
-        ?>
-    </div>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script>
 
@@ -66,18 +51,20 @@ if(isset($data['repondu']) && $data['repondu'] === "true") {
         function getNum() {
             var num_question = null;
             $.ajax({
-                url: 'localhost/num_question.json', // URL de l'API pour obtenir le numéro de la question en cours
+                url: 'http://localhost/SiteQuizz/num_question.json', // URL de l'API pour obtenir le numéro de la question en cours
                 method: 'GET',
                 async: false, // Utilisation de la synchronisation pour attendre la réponse de l'API
                 success: function(response) {
                     num_question = response.num_question;
+                    temps = response.temps
+                    console.log("num question et temps obtenue :" + num_question + " " + temps );
                 },
                 error: function(xhr, status, error) {
                     console.error('Erreur lors de la récupération du numéro de la question : ' + error);
                 }
             });
             return num_question;
-}
+        }
 
         // Fonction pour soumettre la réponse à la question
         function postReponse(reponse) {
@@ -106,7 +93,24 @@ if(isset($data['repondu']) && $data['repondu'] === "true") {
                 console.error('Impossible de récupérer le token de l\'apprenant.');
             }
         }
+        // Définir la durée du décompte (en secondes)
+        var temps_alloue = 60;
 
     </script>
+    <div class="container">
+        <h1>Répondre à la question</h1>
+        <div class="buttons">
+            <button onclick="postReponse('1')">1</button>
+            <button onclick="postReponse('2')">2</button>
+            <button onclick="postReponse('3')">3</button>
+            <button onclick="postReponse('4')">4</button>
+        </div>
+        <?php
+        // Afficher le token de l'utilisateur à des fins de débogage
+        $token = $_COOKIE['token'];
+        echo "<p>DEBUG :  VOTRE TOKEN EST $token";
+        ?>
+    </div>
+
 </body>
 </html>
