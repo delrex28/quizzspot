@@ -47,7 +47,11 @@ if(isset($data['repondu']) && $data['repondu'] === "true") {
         function getToken() {
             return "<?php echo isset($_COOKIE['token']) ? $_COOKIE['token'] : ''; ?>";
         }
-        // Fonction pour récupérer le numéro de la question en cours depuis l'API
+        // Fonction pour rediriger vers la page d'attente des questions
+        function redirigerVersAttente() {
+            window.location.href = 'attente_question.php';
+        }
+        // Fonction pour récupérer le numéro de la question et le temps imparti en cours depuis l'API
         function getNum() {
             var num_question = null;
             $.ajax({
@@ -56,14 +60,30 @@ if(isset($data['repondu']) && $data['repondu'] === "true") {
                 async: false, // Utilisation de la synchronisation pour attendre la réponse de l'API
                 success: function(response) {
                     num_question = response.num_question;
-                    temps = response.temps
-                    console.log("num question et temps obtenue :" + num_question + " " + temps );
+                    console.log("num question obtenu :" + num_question );
                 },
                 error: function(xhr, status, error) {
                     console.error('Erreur lors de la récupération du numéro de la question : ' + error);
                 }
             });
             return num_question;
+        }
+        //récupérer le temps imparti
+        function getTemps() {
+            var temps = 30; // 30s par défaut
+            $.ajax({
+                url: 'http://localhost/SiteQuizz/num_question.json', // URL de l'API pour obtenir le numéro de la question en cours
+                method: 'GET',
+                async: false, // Utilisation de la synchronisation pour attendre la réponse de l'API
+                success: function(response) {
+                    temps = response.temps;
+                    console.log("temps obtenu :" + temps );
+                },
+                error: function(xhr, status, error) {
+                    console.error('Erreur lors de la récupération du temps de la question : ' + error);
+                }
+            });
+            return temps;  
         }
 
         // Fonction pour soumettre la réponse à la question
@@ -94,7 +114,11 @@ if(isset($data['repondu']) && $data['repondu'] === "true") {
             }
         }
         // Définir la durée du décompte (en secondes)
-        var temps_alloue = 60;
+        var temps_alloue = getTemps();
+
+
+        // Démarre le décompte du temps imparti
+        setTimeout(redirigerVersAttente, temps_alloue * 1000); // Convertit le temps en millisecondes
 
     </script>
     <div class="container">
