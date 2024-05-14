@@ -7,9 +7,10 @@
         <link rel="stylesheet" href="style.css">
         <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
     </head>
+    <span class="loader"></span>
     <body>
         <header>
-            <h2><a href="https://www.quizzspot.fr"><img src="images/icon-quizzspot.png">Quizz:Spot</a></h2>
+            <h2><img src="images/icon-quizzspot.png"><a href="https://www.quizzspot.fr">Quizz:Spot</a></h2>
             
             <nav>
                 <a href="#">Acceuil</a>
@@ -32,7 +33,7 @@
             <div class="left">
                 <h1>Pret a gagner avec <br><span>Quizz:Spot</span></h1>
                 <p>Quizz:Spot, c'est une interface de quizz en tout genre pour mobile. Disponible partout même sans connexion. Commence maintenant!"<ion-icon name="rocket-outline"></ion-icon></p>
-                <button>Commencer<ion-icon name="arrow-forward-outline"></ion-icon></button>
+                <button type="submit">Commencer<ion-icon name="arrow-forward-outline"></ion-icon></button>
             </div>
             <div class="right">
                 <h1>Se connecter</h1>
@@ -69,11 +70,30 @@
                     
                         <div class="btns">
                             <button><img src="images/google.png" alt="">Google</button>
-                            <button><img src="images/facebook.png" alt="">Facebook</button> 
+                            <button><img src="images/facebook.png" alt="">Facebook</button>
                         </div>
                     </div>
                 </form>
         </section>
+        <footer>
+            <div class="waves">
+                <div class="wave" id="wave1"></div>
+                <div class="wave" id="wave2"></div>
+                <div class="wave" id="wave3"></div>
+                <div class="wave" id="wave4"></div>
+
+            </div>
+            <ul class="social_icon">
+                <li><a href="https://github.com/delrex28/quizzspot.git"><ion-icon name="logo-github"></ion-icon></a></li>
+            </ul>
+            <ul class="footer_menu">
+                <li><a href="#"></a>Accueil</li>
+                <li><a href="#"></a>A propos</li>
+                <li><a href="#"></a>L'équipe</li>
+                <li><a href="#"></a>Nous contacter</li>
+            </ul>
+            <p>@2024 Quizzspot | Tout droit Résérver</p>
+        </footer>
         <script src="script.js"></script>
         <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
         <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>

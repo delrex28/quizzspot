@@ -4,6 +4,7 @@
         <meta charset="utf-8">
         <title>Selection Status</title>
 		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+		<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 		<script>
 			function retour() {
 				window.location.href="../";
@@ -13,7 +14,7 @@
 
     <body>
 		<div class="row m-4">
-			<img class="col-auto" src="./retour.png" alt="Retour" onclick="retour()" style="width:5%;">
+			<img class="col-auto" src="retour.png" alt="Retour" onclick="retour()" style="width:5%;">
 			<div class="col row justify-content-center"><h3 class="col-auto align-self-center" style="margin-right:7%;">Page Sélection Formateur</h3></div>
 		</div>
 		<div class="mt-5 container">
