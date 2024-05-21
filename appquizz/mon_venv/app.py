@@ -2,6 +2,7 @@ import sys
 from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QComboBox
 import pymysql
 from login import LoginPage
+from QR import AffichageQR
 
 
 class ConnexionPage(QMainWindow):
@@ -19,6 +20,8 @@ class ConnexionPage(QMainWindow):
         # Initialiser la page de sélection de session
         self.session_selection_page = None
 
+        self.QR_page = None
+
     def afficher_page_selection_session(self):
         # Fermer la page de connexion
         self.login_page.close()
@@ -27,6 +30,13 @@ class ConnexionPage(QMainWindow):
         if not self.session_selection_page:
             self.session_selection_page = SessionSelectionPage()
             self.session_selection_page.show()
+
+    def afficher_page_QR(self):
+        self.session_selection_page.close()
+
+        if not self.QR_page:
+            self.QR_page = AffichageQR()
+            self.QR_page.show()
 
 
 class SessionSelectionPage(QWidget):
@@ -66,14 +76,15 @@ class SessionSelectionPage(QWidget):
             cursor = conn.cursor()
 
             # Exemple : Exécuter une requête SQL pour sélectionner toutes les sessions
-            cursor.execute("SELECT nom_session FROM sessions")
+            cursor.execute("SELECT nom_session, date_session FROM sessions")
 
             # Récupérer les noms de session
             sessions = cursor.fetchall()
 
             # Remplir la liste déroulante avec les noms de session
             for session in sessions:
-                self.sessions_combobox.addItem(session[0])
+                nom_session, date_session = session
+                self.sessions_combobox.addItem(f"{nom_session} - {date_session}")
 
             # Fermer le curseur et la connexion
             cursor.close()
@@ -91,11 +102,10 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     
     login_page = LoginPage()
-    connexion_page = ConnexionPage()  # Créez une instance de la page de sélection de session
+    connexion_page = ConnexionPage()  #instance de la page de sélection de session
+    qr_page = AffichageQR()
     
-    # Connectez le signal de la page de connexion à la fonction de la page de sélection de session
+    # Connexion du signal de la page de connexion à la fonction de la page de sélection de session
     login_page.connexion_reussie.connect(connexion_page.afficher_page_selection_session)
-    
     login_page.show()
-
     sys.exit(app.exec())
