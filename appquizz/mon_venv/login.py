@@ -44,8 +44,8 @@ class LoginPage(QWidget):
         try:
             conn = pymysql.connect(
                 host='10.40.1.58',
-                user='louis',  # Remplacez par le nom d'utilisateur de la base de données
-                password='louis',  # Remplacez par le mot de passe de la base de données
+                user='louis',
+                password='louis',
                 database='quizzspot'
             )
 
