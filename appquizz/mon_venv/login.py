@@ -1,6 +1,7 @@
 import sys
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
 from PySide6.QtCore import Signal
+from PySide6.QtGui import QFont
 import pymysql
 
 class LoginPage(QWidget):
@@ -16,6 +17,10 @@ class LoginPage(QWidget):
         layout = QVBoxLayout()
 
         # Labels et champs de saisie pour le nom d'utilisateur et le mot de passe
+        self.bvn_label = QLabel("Bienvenue sur Quizzspot")
+        self.bvn_label.setFont(QFont('Arial', 12))
+        self.msg_label = QLabel("Veuillez vous connecter")
+        self.msg_label.setFont(QFont('Arial', 10))
         self.username_label = QLabel("Nom d'utilisateur:")
         self.username_input = QLineEdit()
         self.password_label = QLabel("Mot de passe:")
@@ -27,6 +32,8 @@ class LoginPage(QWidget):
         self.login_button.clicked.connect(self.login)
 
         # Ajouter les widgets au layout
+        layout.addWidget(self.bvn_label)
+        layout.addWidget(self.msg_label)
         layout.addWidget(self.username_label)
         layout.addWidget(self.username_input)
         layout.addWidget(self.password_label)
