@@ -1,9 +1,11 @@
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QComboBox, QPushButton, QLabel
+import random
+import string
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QPushButton, QLabel
 import pymysql
 from login import LoginPage
-from PySide6.QtCore import Signal
-from PySide6.QtGui import QPixmap
+from PySide6.QtCore import Signal, Qt
+from PySide6.QtGui import QPixmap, QFont
 
 
 class ConnexionPage(QMainWindow):
@@ -31,17 +33,20 @@ class ConnexionPage(QMainWindow):
             self.session_selection_page.signal_session.connect(self.afficher_page_QR)
             self.session_selection_page.show()
 
-    def afficher_page_QR(self):
+    def afficher_page_QR(self, id_quizz_selectionne):
         if self.session_selection_page:
             self.session_selection_page.close()
 
         if not self.QR_page:
-            self.QR_page = AffichageQR()
+            self.QR_page = AffichageQR(id_quizz_selectionne)
+        else:
+            self.QR_page.id_quizz_selectionne = id_quizz_selectionne
+        
         self.QR_page.show()
 
 
 class SessionSelectionPage(QWidget):
-    signal_session = Signal()
+    signal_session = Signal(object)
 
     def __init__(self):
         super().__init__()
@@ -102,8 +107,7 @@ class SessionSelectionPage(QWidget):
 
         # Code pour se connecter à la session sélectionnée
         print(f"ID du quizz sélectionné: {id_quizz_selectionne}")
-        
-        # Mettre à jour le booléen lié à la session dans la base de données
+
         try:
             # Connexion à la base de données
             conn = pymysql.connect(
@@ -131,21 +135,33 @@ class SessionSelectionPage(QWidget):
             print(f"Erreur lors de la mise à jour de la base de données : {e}")
 
         # Émettre le signal pour afficher la page du QR code
-        self.signal_session.emit()
+        self.signal_session.emit(id_quizz_selectionne)
 
 
 class AffichageQR(QWidget):
-    def __init__(self):
+    def __init__(self, id_quizz_selectionne):
         super().__init__()
+        self.id_quizz_selectionne = id_quizz_selectionne
         self.setWindowTitle("QR Code")
-        self.setGeometry(300, 300, 300, 300)
 
         layout = QVBoxLayout()
 
+        # Ajouter un QHBoxLayout pour centrer le QR code horizontalement
         self.qr_label = QLabel()
-        layout.addWidget(self.qr_label)
+        h_layout = QHBoxLayout()
+        h_layout.addStretch()
+        h_layout.addWidget(self.qr_label)
+        h_layout.addStretch()
 
+        layout.addLayout(h_layout)
+
+        self.setLayout(layout)
+        
         # Charger l'image du QR code
+        self.load_qr_code()
+        self.showFullScreen()
+
+    def load_qr_code(self):
         path = "F:/QuizzSpot/Appliquizz/mon_venv/qrcode.png"
         pixmap = QPixmap(path)
 
@@ -156,8 +172,45 @@ class AffichageQR(QWidget):
             self.qr_label.setText("Erreur: QR code non disponible.")
         else:
             self.qr_label.setPixmap(pixmap)
+            self.adjust_qr_size()
+            self.generer_code_et_stocke()
 
-        self.setLayout(layout)
+    def adjust_qr_size(self):
+        # Ajuster la taille du QR code pour s'adapter à l'écran
+        if self.qr_label.pixmap():
+            self.qr_label.setPixmap(self.qr_label.pixmap().scaled(self.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+
+    def generer_code_et_stocke(self):
+        # Générer un code aléatoire
+        code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+
+        try:
+            # Connexion à la base de données
+            conn = pymysql.connect(
+                host='10.40.1.58',
+                user='louis',
+                password='louis',
+                database='quizzspot'
+            )
+
+
+            # Insérer le code généré dans la base de données
+            cursor = conn.cursor()
+            cursor.execute("UPDATE quizzs SET code_quizz = %s WHERE id_quizz = %s", (code, self.id_quizz_selectionne))
+            conn.commit()
+
+            # Fermer le curseur et la connexion
+            cursor.close()
+            conn.close()
+        except pymysql.Error as e:
+            print(f"Erreur lors de l'insertion dans la base de données : {e}")
+
+        # Afficher le code généré
+        code_label = QLabel(f"Utilisez le QR code pour rejoindre la page du quizz, et le code suivant pour vous y connecter : {code}")
+        code_label.setFont(QFont('Arial', 20))  # Définir la taille de la police à 20
+        code_label.setAlignment(Qt.AlignCenter)
+        self.layout().addWidget(code_label)
+
 
 
 if __name__ == "__main__":
