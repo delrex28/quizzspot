@@ -7,7 +7,6 @@ from login import LoginPage
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QPixmap, QFont
 
-#Rajouter le QR code du wifi en premiere chose affichée
 
 class ConnexionPage(QMainWindow):
     def __init__(self):
@@ -33,31 +32,33 @@ class ConnexionPage(QMainWindow):
             self.session_selection_page.signal_session.connect(self.afficher_page_QR)
             self.session_selection_page.show()
 
-    def afficher_page_QR(self, id_quizz_selectionne):
+    def afficher_page_QR(self, id_quizz_selectionne, id_session):
         if self.session_selection_page:
             self.session_selection_page.close()
 
         if not self.QR_page:
-            self.QR_page = AffichageQR(id_quizz_selectionne, self)
+            self.QR_page = AffichageQR(id_quizz_selectionne, id_session, self)
         else:
             self.QR_page.id_quizz_selectionne = id_quizz_selectionne
+            self.QR_page.id_session = id_session
 
         self.QR_page.show()
 
-    def afficher_page_apprenants(self, id_quizz_selectionne):
+    def afficher_page_apprenants(self, id_quizz_selectionne, id_session):
         if self.QR_page:
             self.QR_page.close()
 
         if not self.apprenants_page:
-            self.apprenants_page = ApprenantsPage(id_quizz_selectionne, self)
+            self.apprenants_page = ApprenantsPage(id_quizz_selectionne, id_session, self)
         else:
             self.apprenants_page.id_quizz_selectionne = id_quizz_selectionne
+            self.apprenants_page.id_session = id_session
 
         self.apprenants_page.show()
 
 
 class SessionSelectionPage(QWidget):
-    signal_session = Signal(object)
+    signal_session = Signal(object, object)
 
     def __init__(self):
         super().__init__()
@@ -90,12 +91,12 @@ class SessionSelectionPage(QWidget):
                 database='quizzspot'
             )
             cursor = conn.cursor()
-            cursor.execute("SELECT nom_session, date_session, id_quizz FROM sessions")
+            cursor.execute("SELECT nom_session, date_session, id_quizz, id_session FROM sessions")
             sessions = cursor.fetchall()
 
             for session in sessions:
-                nom_session, date_session, id_quizz = session
-                self.sessions_combobox.addItem(f"{nom_session} - {date_session}", id_quizz)
+                nom_session, date_session, id_quizz, id_session = session
+                self.sessions_combobox.addItem(f"{nom_session} - {date_session}", (id_quizz, id_session))
 
             cursor.close()
             conn.close()
@@ -104,8 +105,8 @@ class SessionSelectionPage(QWidget):
 
     def se_connecter(self):
         index_selectionne = self.sessions_combobox.currentIndex()
-        id_quizz_selectionne = self.sessions_combobox.itemData(index_selectionne)
-        print(f"ID du quizz sélectionné: {id_quizz_selectionne}")
+        id_quizz_selectionne, id_session_selectionne = self.sessions_combobox.itemData(index_selectionne)
+        print(f"ID du quizz sélectionné: {id_quizz_selectionne}, ID de la session sélectionnée: {id_session_selectionne}")
 
         try:
             conn = pymysql.connect(
@@ -124,13 +125,14 @@ class SessionSelectionPage(QWidget):
         except pymysql.Error as e:
             print(f"Erreur lors de la mise à jour de la base de données : {e}")
 
-        self.signal_session.emit(id_quizz_selectionne)
+        self.signal_session.emit(id_quizz_selectionne, id_session_selectionne)
 
 
 class AffichageQR(QWidget):
-    def __init__(self, id_quizz_selectionne, parent=None):
+    def __init__(self, id_quizz_selectionne, id_session, parent=None):
         super().__init__()
         self.id_quizz_selectionne = id_quizz_selectionne
+        self.id_session = id_session
         self.parent = parent
         self.setWindowTitle("QR Code")
 
@@ -197,13 +199,14 @@ class AffichageQR(QWidget):
 
 
     def switch_to_apprenants_page(self):
-        self.parent.afficher_page_apprenants(self.id_quizz_selectionne)
+        self.parent.afficher_page_apprenants(self.id_quizz_selectionne, self.id_session)
 
 
 class ApprenantsPage(QWidget):
-    def __init__(self, id_quizz_selectionne, parent=None):
+    def __init__(self, id_quizz_selectionne, id_session, parent=None):
         super().__init__()
         self.id_quizz_selectionne = id_quizz_selectionne
+        self.id_session = id_session
         self.parent = parent
         self.setWindowTitle("Apprenants Connectés")
 
@@ -217,6 +220,11 @@ class ApprenantsPage(QWidget):
         self.setLayout(layout)
 
         self.load_apprenants()
+
+        # Bouton pour actualiser la liste des apprenants
+        self.refresh_button = QPushButton("Actualiser")
+        self.refresh_button.clicked.connect(self.load_apprenants)
+        layout.addWidget(self.refresh_button)
 
         # Bouton pour retourner à la page du QR code
         self.switch_button = QPushButton("Retour au QR code")
@@ -234,32 +242,32 @@ class ApprenantsPage(QWidget):
             cursor = conn.cursor()
 
             # Récupérer l'ID du groupe lié à la session sélectionnée
-            cursor.execute("SELECT groupe_id FROM sessions WHERE id_quizz = %s", (self.id_quizz_selectionne,))
+            cursor.execute("SELECT id_groupe FROM sessions WHERE id_session = %s", (self.id_session,))
             groupe_id = cursor.fetchone()[0]
 
             # Récupérer les IDs des utilisateurs du groupe
-            cursor.execute("SELECT utilisateur_id FROM rel_utilisateurs_groupes WHERE groupe_id = %s", (groupe_id,))
+            cursor.execute("SELECT id_user FROM rel_utilisateurs_groupes WHERE id_groupe = %s", (groupe_id,))
             utilisateurs_ids = cursor.fetchall()
 
             # Récupérer les noms, prénoms et statut de connexion des utilisateurs
             apprenants = []
             for utilisateur_id in utilisateurs_ids:
-                cursor.execute("SELECT nom, prenom, statut_connexion FROM utilisateurs WHERE id = %s", (utilisateur_id,))
-                apprenant = cursor.fetchone()
-                apprenants.append(apprenant)
+                cursor.execute("SELECT nom_user, prenom_user, statut_connexion FROM utilisateurs WHERE id_user = %s", (utilisateur_id,))
+                utilisateur = cursor.fetchone()
+                if utilisateur:
+                    nom, prenom, statut_connexion = utilisateur
+                    apprenants.append((nom, prenom, statut_connexion))
 
-            cursor.close()
             conn.close()
 
-            # Afficher la liste des apprenants
-            apprenants_text = "\n".join([f"{nom} {prenom} - {'Connecté' if statut_connexion else 'Non connecté'}" for nom, prenom, statut_connexion in apprenants])
+            apprenants_text = "\n".join([f"{nom} {prenom} - {'Connecté' if statut_connexion==1 else 'Non connecté'}" for nom, prenom, statut_connexion in apprenants])
             self.apprenants_list.setText(apprenants_text)
 
         except pymysql.Error as e:
             print(f"Erreur lors de la récupération des apprenants : {e}")
 
     def switch_to_QR_page(self):
-        self.parent.afficher_page_QR(self.id_quizz_selectionne)
+        self.parent.afficher_page_QR(self.id_quizz_selectionne, self.id_session)
 
 
 if __name__ == "__main__":
