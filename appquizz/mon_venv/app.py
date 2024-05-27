@@ -4,7 +4,7 @@ import string
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QPushButton, QLabel
 import pymysql
 from login import LoginPage
-from PySide6.QtCore import Signal, Qt
+from PySide6.QtCore import Signal, Qt, QTimer
 from PySide6.QtGui import QPixmap, QFont
 
 
@@ -23,6 +23,7 @@ class ConnexionPage(QMainWindow):
         self.session_selection_page = None
         self.QR_page = None
         self.apprenants_page = None
+        self.questions_page = None
 
     def afficher_page_selection_session(self):
         self.login_page.close()
@@ -55,6 +56,17 @@ class ConnexionPage(QMainWindow):
             self.apprenants_page.id_session = id_session
 
         self.apprenants_page.show()
+
+    def afficher_page_questions(self, id_quizz_selectionne):
+        if self.apprenants_page:
+            self.apprenants_page.close()
+
+        if not self.questions_page:
+            self.questions_page = QuestionsPage(id_quizz_selectionne, self)
+        else:
+            self.questions_page.id_quizz_selectionne = id_quizz_selectionne
+
+        self.questions_page.show()
 
 
 class SessionSelectionPage(QWidget):
@@ -226,6 +238,11 @@ class ApprenantsPage(QWidget):
         self.refresh_button.clicked.connect(self.load_apprenants)
         layout.addWidget(self.refresh_button)
 
+        # Bouton pour lancer le quiz
+        self.start_quiz_button = QPushButton("Lancer le quiz")
+        self.start_quiz_button.clicked.connect(self.start_quiz)
+        layout.addWidget(self.start_quiz_button)
+
         # Bouton pour retourner à la page du QR code
         self.switch_button = QPushButton("Retour au QR code")
         self.switch_button.clicked.connect(self.switch_to_QR_page)
@@ -260,14 +277,78 @@ class ApprenantsPage(QWidget):
 
             conn.close()
 
-            apprenants_text = "\n".join([f"{nom} {prenom} - {'Connecté' if statut_connexion==1 else 'Non connecté'}" for nom, prenom, statut_connexion in apprenants])
+            apprenants_text = "\n".join([f"{nom} {prenom} - {'Connecté' if statut_connexion == 1 else 'Non connecté'}" for nom, prenom, statut_connexion in apprenants])
             self.apprenants_list.setText(apprenants_text)
 
         except pymysql.Error as e:
             print(f"Erreur lors de la récupération des apprenants : {e}")
 
+    def start_quiz(self):
+        self.parent.afficher_page_questions(self.id_quizz_selectionne)
+
     def switch_to_QR_page(self):
         self.parent.afficher_page_QR(self.id_quizz_selectionne, self.id_session)
+
+
+class QuestionsPage(QWidget):
+    def __init__(self, id_quizz_selectionne, parent=None):
+        super().__init__()
+        self.id_quizz_selectionne = id_quizz_selectionne
+        self.parent = parent
+        self.setWindowTitle("Questions du Quiz")
+
+        self.layout = QVBoxLayout()
+        self.question_label = QLabel()
+        self.layout.addWidget(self.question_label)
+
+        self.setLayout(self.layout)
+
+        self.questions = []
+        self.current_question_index = 0
+
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.next_question)
+
+        self.load_questions()
+        self.start_quiz()
+
+    def load_questions(self):
+        try:
+            conn = pymysql.connect(
+                host='10.40.1.58',
+                user='louis',
+                password='louis',
+                database='quizzspot'
+            )
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT intitule_question FROM questions WHERE id_quizz = %s", (self.id_quizz_selectionne,))
+            self.questions = cursor.fetchall()
+
+            conn.close()
+
+        except pymysql.Error as e:
+            print(f"Erreur lors de la récupération des questions : {e}")
+
+    def start_quiz(self):
+        self.current_question_index = 0
+        self.timer.start(6000) #en ms
+        self.show_question()
+
+    def show_question(self):
+        if self.current_question_index < len(self.questions):
+            question_text = self.questions[self.current_question_index][0]
+            self.question_label.setText(question_text)
+        else:
+            self.question_label.setText("Le quizz est terminé.")
+
+    def next_question(self):
+        self.current_question_index += 1
+        if self.current_question_index < len(self.questions):
+            self.show_question()
+        else:
+            self.timer.stop()
+            self.question_label.setText("Le quizz est terminé.")
 
 
 if __name__ == "__main__":
