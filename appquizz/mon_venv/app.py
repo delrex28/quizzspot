@@ -25,13 +25,15 @@ class ConnexionPage(QMainWindow):
         self.apprenants_page = None
         self.questions_page = None
 
+        self.setWindowState(Qt.WindowFullScreen)
+
     def afficher_page_selection_session(self):
         self.login_page.close()
 
         if not self.session_selection_page:
             self.session_selection_page = SessionSelectionPage()
             self.session_selection_page.signal_session.connect(self.afficher_page_QR)
-            self.session_selection_page.show()
+            self.session_selection_page.showFullScreen()
 
     def afficher_page_QR(self, id_quizz_selectionne, id_session):
         if self.session_selection_page:
@@ -43,7 +45,7 @@ class ConnexionPage(QMainWindow):
             self.QR_page.id_quizz_selectionne = id_quizz_selectionne
             self.QR_page.id_session = id_session
 
-        self.QR_page.show()
+        self.QR_page.showFullScreen()
 
     def afficher_page_apprenants(self, id_quizz_selectionne, id_session):
         if self.QR_page:
@@ -55,7 +57,7 @@ class ConnexionPage(QMainWindow):
             self.apprenants_page.id_quizz_selectionne = id_quizz_selectionne
             self.apprenants_page.id_session = id_session
 
-        self.apprenants_page.show()
+        self.apprenants_page.showFullScreen()
 
     def afficher_page_questions(self, id_quizz_selectionne):
         if self.apprenants_page:
@@ -66,7 +68,7 @@ class ConnexionPage(QMainWindow):
         else:
             self.questions_page.id_quizz_selectionne = id_quizz_selectionne
 
-        self.questions_page.show()
+        self.questions_page.showFullScreen()
 
 
 class SessionSelectionPage(QWidget):
@@ -79,16 +81,17 @@ class SessionSelectionPage(QWidget):
         self.setGeometry(200, 200, 400, 200)
 
         layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignCenter)
 
         self.label = QLabel("Sélectionnez une session :")
-        layout.addWidget(self.label)
+        layout.addWidget(self.label, alignment=Qt.AlignCenter)
 
         self.sessions_combobox = QComboBox()
-        layout.addWidget(self.sessions_combobox)
+        layout.addWidget(self.sessions_combobox, alignment=Qt.AlignCenter)
 
         self.button = QPushButton("Se connecter")
         self.button.clicked.connect(self.se_connecter)
-        layout.addWidget(self.button)
+        layout.addWidget(self.button, alignment=Qt.AlignCenter)
 
         self.setLayout(layout)
 
@@ -149,6 +152,7 @@ class AffichageQR(QWidget):
         self.setWindowTitle("QR Code")
 
         layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignCenter)
 
         self.qr_label = QLabel()
         h_layout = QHBoxLayout()
@@ -166,12 +170,11 @@ class AffichageQR(QWidget):
         self.setLayout(layout)
 
         self.load_qr_code()
-        self.showFullScreen()
 
         # Bouton pour basculer vers la page des apprenants
         self.switch_button = QPushButton("Voir les apprenants connectés")
         self.switch_button.clicked.connect(self.switch_to_apprenants_page)
-        layout.addWidget(self.switch_button)
+        layout.addWidget(self.switch_button, alignment=Qt.AlignCenter)
 
     def load_qr_code(self):
         path = "G:/QuizzSpot/Appliquizz/mon_venv/qrcode.png"
@@ -223,11 +226,13 @@ class ApprenantsPage(QWidget):
         self.setWindowTitle("Apprenants Connectés")
 
         layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignCenter)
+
         self.apprenants_label = QLabel("Liste des apprenants connectés :")
-        layout.addWidget(self.apprenants_label)
+        layout.addWidget(self.apprenants_label, alignment=Qt.AlignCenter)
 
         self.apprenants_list = QLabel()
-        layout.addWidget(self.apprenants_list)
+        layout.addWidget(self.apprenants_list, alignment=Qt.AlignCenter)
 
         self.setLayout(layout)
 
@@ -236,17 +241,17 @@ class ApprenantsPage(QWidget):
         # Bouton pour actualiser la liste des apprenants
         self.refresh_button = QPushButton("Actualiser")
         self.refresh_button.clicked.connect(self.load_apprenants)
-        layout.addWidget(self.refresh_button)
+        layout.addWidget(self.refresh_button, alignment=Qt.AlignCenter)
 
         # Bouton pour lancer le quiz
         self.start_quiz_button = QPushButton("Lancer le quiz")
         self.start_quiz_button.clicked.connect(self.start_quiz)
-        layout.addWidget(self.start_quiz_button)
+        layout.addWidget(self.start_quiz_button, alignment=Qt.AlignCenter)
 
         # Bouton pour retourner à la page du QR code
         self.switch_button = QPushButton("Retour au QR code")
         self.switch_button.clicked.connect(self.switch_to_QR_page)
-        layout.addWidget(self.switch_button)
+        layout.addWidget(self.switch_button, alignment=Qt.AlignCenter)
 
     def load_apprenants(self):
         try:
@@ -298,8 +303,10 @@ class QuestionsPage(QWidget):
         self.setWindowTitle("Questions du Quiz")
 
         self.layout = QVBoxLayout()
+        self.layout.setAlignment(Qt.AlignCenter)
+        
         self.question_label = QLabel()
-        self.layout.addWidget(self.question_label)
+        self.layout.addWidget(self.question_label, alignment=Qt.AlignCenter)
 
         self.setLayout(self.layout)
 
@@ -332,15 +339,17 @@ class QuestionsPage(QWidget):
 
     def start_quiz(self):
         self.current_question_index = 0
-        self.timer.start(6000) #en ms
+        self.timer.start(9000)  # 60000 ms = 1 minute
         self.show_question()
 
     def show_question(self):
         if self.current_question_index < len(self.questions):
             question_text = self.questions[self.current_question_index][0]
             self.question_label.setText(question_text)
+            self.question_label.setFont(QFont('Arial', 25))
         else:
-            self.question_label.setText("Le quizz est terminé.")
+            self.question_label.setText("Le quiz est terminé.")
+            self.question_label.setFont(QFont('Arial', 25))
 
     def next_question(self):
         self.current_question_index += 1
@@ -348,13 +357,13 @@ class QuestionsPage(QWidget):
             self.show_question()
         else:
             self.timer.stop()
-            self.question_label.setText("Le quizz est terminé.")
+            self.question_label.setText("Le quiz est terminé.")
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     connexion_page = ConnexionPage()
-    connexion_page.login_page.show()
+    connexion_page.login_page.showFullScreen()
 
     sys.exit(app.exec())
