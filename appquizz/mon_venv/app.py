@@ -13,7 +13,6 @@ class ConnexionPage(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("Page de Connexion")
-        self.setGeometry(100, 100, 400, 200)
 
         # Créer une instance de la page de connexion
         self.login_page = LoginPage()
@@ -24,7 +23,6 @@ class ConnexionPage(QMainWindow):
         self.QR_page = None
         self.apprenants_page = None
         self.questions_page = None
-
         self.setWindowState(Qt.WindowFullScreen)
 
     def afficher_page_selection_session(self):
@@ -100,9 +98,9 @@ class SessionSelectionPage(QWidget):
     def remplir_sessions_combobox(self):
         try:
             conn = pymysql.connect(
-                host='10.40.1.58',
-                user='louis',
-                password='louis',
+                host='quizzspot.fr',
+                user='web',
+                password='Uslof504',
                 database='quizzspot'
             )
             cursor = conn.cursor()
@@ -125,9 +123,9 @@ class SessionSelectionPage(QWidget):
 
         try:
             conn = pymysql.connect(
-                host='10.40.1.58',
-                user='louis',
-                password='louis',
+                host='quizzspot.fr',
+                user='web',
+                password='Uslof504',
                 database='quizzspot'
             )
             cursor = conn.cursor()
@@ -197,13 +195,13 @@ class AffichageQR(QWidget):
 
         try:
             conn = pymysql.connect(
-                host='10.40.1.58',
-                user='louis',
-                password='louis',
+                host='quizzspot.fr',
+                user='web',
+                password='Uslof504',
                 database='quizzspot'
             )
             cursor = conn.cursor()
-            cursor.execute("UPDATE quizzs SET code_quizz = %s WHERE id_quizz = %s", (code, self.id_quizz_selectionne))
+            cursor.execute("UPDATE sessions SET code_quizz = %s WHERE id_session = %s", (code, self.id_session))
             conn.commit()
             cursor.close()
             conn.close()
@@ -256,9 +254,9 @@ class ApprenantsPage(QWidget):
     def load_apprenants(self):
         try:
             conn = pymysql.connect(
-                host='10.40.1.58',
-                user='louis',
-                password='louis',
+                host='quizzspot.fr',
+                user='web',
+                password='Uslof504',
                 database='quizzspot'
             )
             cursor = conn.cursor()
@@ -322,9 +320,9 @@ class QuestionsPage(QWidget):
     def load_questions(self):
         try:
             conn = pymysql.connect(
-                host='10.40.1.58',
-                user='louis',
-                password='louis',
+                host='quizzspot.fr',
+                user='web',
+                password='Uslof504',
                 database='quizzspot'
             )
             cursor = conn.cursor()
