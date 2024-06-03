@@ -7,16 +7,16 @@
         <link rel="stylesheet" href="style.css">
         <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
     </head>
-    <span class="loader"></span>
     <body>
         <header>
             <h2><img src="images/icon-quizzspot.png"><a href="https://www.quizzspot.fr">Quizz:Spot</a></h2>
             
             <nav>
-                <a href="#">Acceuil</a>
-                <a href="#">Quizz</a>
+                <a href="https://www.quizzspot.fr">Acceuil</a>
                 <a href="https://orga.quizzspot.fr">Espace Orga</a>
-                <a href="#">Compte</a>
+                <a href="https://admin.quizzspot.fr">Espace Administrateur</a>
+                <a href="https://bilan.quizzspot.fr">Espace Apprenant</a>
+
             </nav>
 
             <div class="searchbar">
@@ -66,23 +66,16 @@
                     ?>
 
                     <div class="another">
-                        <p>Je n'est pas de compte <a href="#">S'inscrire</a></p>
+                        <!-- <p>Je n'est pas de compte <a href="#">S'inscrire</a></p> -->
                     
-                        <div class="btns">
+                        <!-- <div class="btns">
                             <button><img src="images/google.png" alt="">Google</button>
                             <button><img src="images/facebook.png" alt="">Facebook</button>
-                        </div>
+                        </div> -->
                     </div>
                 </form>
         </section>
         <footer>
-            <div class="waves">
-                <div class="wave" id="wave1"></div>
-                <div class="wave" id="wave2"></div>
-                <div class="wave" id="wave3"></div>
-                <div class="wave" id="wave4"></div>
-
-            </div>
             <ul class="social_icon">
                 <li><a href="https://github.com/delrex28/quizzspot.git"><ion-icon name="logo-github"></ion-icon></a></li>
             </ul>
