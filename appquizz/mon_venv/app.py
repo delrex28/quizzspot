@@ -57,12 +57,12 @@ class ConnexionPage(QMainWindow):
 
         self.apprenants_page.showFullScreen()
 
-    def afficher_page_questions(self, id_quizz_selectionne):
+    def afficher_page_questions(self, id_quizz_selectionne, id_session):
         if self.apprenants_page:
             self.apprenants_page.close()
 
         if not self.questions_page:
-            self.questions_page = QuestionsPage(id_quizz_selectionne, self)
+            self.questions_page = QuestionsPage(id_quizz_selectionne, id_session, self)
         else:
             self.questions_page.id_quizz_selectionne = id_quizz_selectionne
 
@@ -81,7 +81,12 @@ class SessionSelectionPage(QWidget):
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignCenter)
 
+        # self.bvn_label = QLabel("Bienvenue sur Quizzspot")
+        # self.bvn_label.setFont(QFont('Arial', 25))
+        # layout.addWidget(self.bvn_label, alignment=Qt.AlignCenter)
+
         self.label = QLabel("Sélectionnez une session :")
+        self.label.setFont(QFont('Arial', 20))
         layout.addWidget(self.label, alignment=Qt.AlignCenter)
 
         self.sessions_combobox = QComboBox()
@@ -175,7 +180,7 @@ class AffichageQR(QWidget):
         layout.addWidget(self.switch_button, alignment=Qt.AlignCenter)
 
     def load_qr_code(self):
-        path = "G:/QuizzSpot/Appliquizz/mon_venv/qrcode.png"
+        path = "G:\QuizzSpot\Appliquizz\mon_venv\qrcode.png"
         pixmap = QPixmap(path)
 
         if pixmap.isNull():
@@ -201,7 +206,7 @@ class AffichageQR(QWidget):
                 database='quizzspot'
             )
             cursor = conn.cursor()
-            cursor.execute("UPDATE sessions SET code_quizz = %s WHERE id_session = %s", (code, self.id_session))
+            cursor.execute("UPDATE sessions SET code_session = %s WHERE id_session = %s", (code, self.id_session))
             conn.commit()
             cursor.close()
             conn.close()
@@ -227,9 +232,11 @@ class ApprenantsPage(QWidget):
         layout.setAlignment(Qt.AlignCenter)
 
         self.apprenants_label = QLabel("Liste des apprenants connectés :")
+        self.apprenants_label.setFont(QFont('Arial', 22))
         layout.addWidget(self.apprenants_label, alignment=Qt.AlignCenter)
 
         self.apprenants_list = QLabel()
+        self.apprenants_list.setFont(QFont('Arial', 18))
         layout.addWidget(self.apprenants_list, alignment=Qt.AlignCenter)
 
         self.setLayout(layout)
@@ -272,7 +279,7 @@ class ApprenantsPage(QWidget):
             # Récupérer les noms, prénoms et statut de connexion des utilisateurs
             apprenants = []
             for utilisateur_id in utilisateurs_ids:
-                cursor.execute("SELECT nom_user, prenom_user, statut_connexion FROM utilisateurs WHERE id_user = %s", (utilisateur_id,))
+                cursor.execute("SELECT nom_user, prenom_user, bool_connexion FROM utilisateurs WHERE id_user = %s", (utilisateur_id,))
                 utilisateur = cursor.fetchone()
                 if utilisateur:
                     nom, prenom, statut_connexion = utilisateur
@@ -287,18 +294,20 @@ class ApprenantsPage(QWidget):
             print(f"Erreur lors de la récupération des apprenants : {e}")
 
     def start_quiz(self):
-        self.parent.afficher_page_questions(self.id_quizz_selectionne)
+        self.parent.afficher_page_questions(self.id_quizz_selectionne, self.id_session)
 
     def switch_to_QR_page(self):
         self.parent.afficher_page_QR(self.id_quizz_selectionne, self.id_session)
 
 
 class QuestionsPage(QWidget):
-    def __init__(self, id_quizz_selectionne, parent=None):
+    def __init__(self, id_quizz_selectionne, id_session, parent=None):
         super().__init__()
         self.id_quizz_selectionne = id_quizz_selectionne
+        self.id_session = id_session
         self.parent = parent
         self.setWindowTitle("Questions du Quiz")
+        self.showFullScreen()
 
         self.layout = QVBoxLayout()
         self.layout.setAlignment(Qt.AlignCenter)
@@ -327,7 +336,7 @@ class QuestionsPage(QWidget):
             )
             cursor = conn.cursor()
 
-            cursor.execute("SELECT intitule_question FROM questions WHERE id_quizz = %s", (self.id_quizz_selectionne,))
+            cursor.execute("SELECT id_question, intitule_question FROM questions WHERE id_quizz = %s", (self.id_quizz_selectionne,))
             self.questions = cursor.fetchall()
 
             conn.close()
@@ -335,19 +344,68 @@ class QuestionsPage(QWidget):
         except pymysql.Error as e:
             print(f"Erreur lors de la récupération des questions : {e}")
 
+    def load_responses(self, question_id):
+        try:
+            conn = pymysql.connect(
+                host='quizzspot.fr',
+                user='web',
+                password='Uslof504',
+                database='quizzspot'
+            )
+            cursor = conn.cursor()
+            cursor.execute("SELECT nom_reponse, contenu_reponse, bool_bonne_reponse FROM reponses WHERE id_question = %s", (question_id,))
+            responses = cursor.fetchall()
+            conn.close()
+            return responses
+        except pymysql.Error as e:
+            print(f"Erreur lors de la récupération des réponses : {e}")
+            return []
+
+    def clear_responses(self):
+        # Enlever les anciennes réponses
+        for i in reversed(range(self.layout.count())): 
+            widget = self.layout.itemAt(i).widget()
+            if widget != self.question_label:
+                self.layout.removeWidget(widget)
+                widget.deleteLater()
+
     def start_quiz(self):
         self.current_question_index = 0
-        self.timer.start(9000)  # 60000 ms = 1 minute
-        self.show_question()
+        try:
+            conn = pymysql.connect(
+                host='quizzspot.fr',
+                user='web',
+                password='Uslof504',
+                database='quizzspot'
+            )
+            cursor = conn.cursor()
+            cursor.execute("SELECT valeur_moda_quizz FROM modalites_quizz WHERE id_quizz = %s", (self.id_quizz_selectionne,))
+            moda_quizz_value = cursor.fetchone()
+            conn.close()
+
+            if moda_quizz_value and moda_quizz_value[0] is not None:
+                self.timer_duration = int(moda_quizz_value[0]) * 1000  # Convert seconds to milliseconds
+
+            self.timer.start(self.timer_duration)
+            self.show_question()
+
+        except pymysql.Error as e:
+            print(f"Erreur lors de la récupération des modalités : {e}")
 
     def show_question(self):
         if self.current_question_index < len(self.questions):
-            question_text = self.questions[self.current_question_index][0]
+            question_id, question_text = self.questions[self.current_question_index]
             self.question_label.setText(question_text)
-            self.question_label.setFont(QFont('Arial', 25))
-        else:
-            self.question_label.setText("Le quiz est terminé.")
-            self.question_label.setFont(QFont('Arial', 25))
+            self.question_label.setFont(QFont('Arial', 35))
+
+            self.clear_responses()  # Clear les réponses avant d'afficher la nouvelle question
+                    
+            responses = self.load_responses(question_id)
+            for response in responses:
+                response_text = f"{response[0]}: {response[1]}"
+                response_label = QLabel(response_text)
+                response_label.setFont(QFont('Arial', 25))
+                self.layout.addWidget(response_label, alignment=Qt.AlignCenter)
 
     def next_question(self):
         self.current_question_index += 1
@@ -356,12 +414,34 @@ class QuestionsPage(QWidget):
         else:
             self.timer.stop()
             self.question_label.setText("Le quiz est terminé.")
+            self.clear_responses()  # Clear les réponses à la fin du quiz
+            self.clear_quiz_code()  # Efface le code du quiz
+            QTimer.singleShot(10000, self.close)  # Ferme l'application après 10 secondes
+
+    def clear_quiz_code(self):
+        try:
+            conn = pymysql.connect(
+                host='quizzspot.fr',
+                user='web',
+                password='Uslof504',
+                database='quizzspot'
+            )
+            cursor = conn.cursor()
+            cursor.execute("UPDATE sessions SET code_session = NULL WHERE id_session = %s", (self.id_session,))
+            conn.commit()
+            cursor.close()
+            conn.close()
+        except pymysql.Error as e:
+            print(f"Erreur lors de la mise à jour de la base de données pour effacer le code du quiz : {e}")
+
+
+
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     connexion_page = ConnexionPage()
-    connexion_page.login_page.showFullScreen()
+    connexion_page.login_page.show()
 
     sys.exit(app.exec())
