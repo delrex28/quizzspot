@@ -1,12 +1,12 @@
 import sys
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QFont
 import pymysql
 
 class LoginPage(QWidget):
     # Déclarer un signal pour indiquer une connexion réussie
-    connexion_reussie = Signal()
+    connexion_reussie = Signal(int)
 
     def __init__(self):
         super().__init__()
@@ -50,26 +50,26 @@ class LoginPage(QWidget):
         # Connexion à la base de données pour vérifier les informations d'identification
         try:
             conn = pymysql.connect(
-                host='10.40.1.58',
-                user='louis',
-                password='louis',
+                host='quizzspot.fr',
+                user='web',
+                password='Uslof504',
                 database='quizzspot'
             )
 
             cursor = conn.cursor()
 
             # Exécutez une requête pour vérifier les informations d'identification
-            query = "SELECT nom_user, mdp_user FROM utilisateurs WHERE nom_user = %s"
+            query = "SELECT nom_user, mdp_user, id_user FROM utilisateurs WHERE nom_user = %s"
             cursor.execute(query, (username,))
             result = cursor.fetchone()
 
             if result is not None:
-                db_username, db_password = result
+                db_username, db_password, id_user = result
 
                 if password == db_password:
                     print("Connexion réussie !")
                     self.close()
-                    self.connexion_reussie.emit()
+                    self.connexion_reussie.emit(id_user)
                 else:
                     self.show_error_message("Mot de passe incorrect")
             else:
