@@ -25,11 +25,11 @@ class ConnexionPage(QMainWindow):
         self.questions_page = None
         self.setWindowState(Qt.WindowFullScreen)
 
-    def afficher_page_selection_session(self):
+    def afficher_page_selection_session(self, user_id):
         self.login_page.close()
 
         if not self.session_selection_page:
-            self.session_selection_page = SessionSelectionPage()
+            self.session_selection_page = SessionSelectionPage(user_id)
             self.session_selection_page.signal_session.connect(self.afficher_page_QR)
             self.session_selection_page.showFullScreen()
 
@@ -72,9 +72,10 @@ class ConnexionPage(QMainWindow):
 class SessionSelectionPage(QWidget):
     signal_session = Signal(object, object)
 
-    def __init__(self):
+    def __init__(self, user_id):
         super().__init__()
 
+        self.user_id=user_id
         self.setWindowTitle("Sélection de Session")
         self.setGeometry(200, 200, 400, 200)
 
@@ -109,7 +110,7 @@ class SessionSelectionPage(QWidget):
                 database='quizzspot'
             )
             cursor = conn.cursor()
-            cursor.execute("SELECT nom_session, date_session, id_quizz, id_session FROM sessions")
+            cursor.execute("SELECT nom_session, date_session, id_quizz, id_session FROM sessions WHERE id_user = %s", (self.user_id,))
             sessions = cursor.fetchall()
 
             for session in sessions:
@@ -384,7 +385,7 @@ class QuestionsPage(QWidget):
             conn.close()
 
             if moda_quizz_value and moda_quizz_value[0] is not None:
-                self.timer_duration = int(moda_quizz_value[0]) * 1000  # Convert seconds to milliseconds
+                self.timer_duration = int(moda_quizz_value[0]) * 1000  #Secondes en millisecondes
 
             self.timer.start(self.timer_duration)
             self.show_question()
