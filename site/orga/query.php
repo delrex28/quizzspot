@@ -1,18 +1,17 @@
 <?php
 function db_connect() {
-    $servername = 'localhost';
-    $username = 'web';
-    $password = 'Uslof504';
-    $db_name = 'quizzspot';
+    $servername = "localhost";
+    $username = "web";
+    $password = "Uslof504";
+    $dbname = "quizzspot";
 
-    $driver = new mysqli_driver();
-    $driver->report_mode = MYSQLI_REPORT_STRICT;
-    try {
-        $conn = new mysqli($servername, $username, $password, $db_name);
-        return $conn;
-    } catch (mysqli_sql_exception $e) {
-        echo "Connexion impossible " . $e->__toString();
-        exit;
+    // Créer une connexion
+    $conn = new mysqli($servername, $username, $password, $dbname);
+
+    // Vérifier la connexion
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
     }
+    return $conn;
 }
 ?>

@@ -4,20 +4,24 @@ import mysql.connector
 app = Flask(__name__)
 
 # Configuration de la base de données
-db = mysql.connector.connect(
-    host="localhost",
-    user="web",
-    passwd="Uslof504",
-    database="quizzspot"
-)
-cursor = db.cursor(dictionary=True)
+db_config = {
+    'host': "localhost",
+    'user': "web",
+    'passwd': "Uslof504",
+    'database': "quizzspot"
+}
 
+def get_db_connection():
+    return mysql.connector.connect(**db_config)
 
 @app.route('/validate_code', methods=['GET'])
 def validate_code():
     code = request.args.get('code')
     if not code:
         return jsonify({"error": "Code is required"}), 400
+
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
 
     query = """
     SELECT utilisateurs.id_user, utilisateurs.nom_user, utilisateurs.prenom_user
@@ -28,6 +32,8 @@ def validate_code():
     """
     cursor.execute(query, (code,))
     participants = cursor.fetchall()
+    cursor.close()
+    db.close()
 
     if participants:
         response = {
@@ -48,9 +54,14 @@ def mark_connected():
     if not nom or not prenom:
         return jsonify({"error": "Nom and Prenom are required"}), 400
 
+    db = get_db_connection()
+    cursor = db.cursor()
+
     query = "UPDATE utilisateurs SET bool_connexion = 1 WHERE nom_user = %s AND prenom_user = %s"
     cursor.execute(query, (nom, prenom))
     db.commit()
+    cursor.close()
+    db.close()
 
     return jsonify({"status": "success", "message": "Participant marked as connected"})
 
@@ -62,9 +73,14 @@ def unmark_connected():
     if not nom or not prenom:
         return jsonify({"error": "Nom and Prenom are required"}), 400
 
+    db = get_db_connection()
+    cursor = db.cursor()
+
     query = "UPDATE utilisateurs SET bool_connexion = 0 WHERE nom_user = %s AND prenom_user = %s"
     cursor.execute(query, (nom, prenom))
     db.commit()
+    cursor.close()
+    db.close()
 
     return jsonify({"status": "success", "message": "Participant marked as disconnected"})
 
@@ -76,9 +92,14 @@ def is_participant_available():
     if not nom or not prenom:
         return jsonify({"error": "Nom and Prenom are required"}), 400
 
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
     query = "SELECT bool_connexion FROM utilisateurs WHERE nom_user = %s AND prenom_user = %s"
     cursor.execute(query, (nom, prenom))
     participant = cursor.fetchone()
+    cursor.close()
+    db.close()
 
     if participant and participant['bool_connexion'] == 1:
         return jsonify({'Nom_dispo': 'false'})
@@ -92,9 +113,14 @@ def current_question():
     if not token:
         return jsonify({"error": "Token is required"}), 400
 
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
     query = "SELECT id_question FROM reponses_apprenant WHERE id_user = %s ORDER BY id_reponse_apprenant DESC LIMIT 1"
     cursor.execute(query, (token,))
     last_answered_question = cursor.fetchone()
+    cursor.close()
+    db.close()
 
     if last_answered_question:
         current_question = last_answered_question['id_question'] + 1
@@ -119,12 +145,17 @@ def submit_answer():
     id_question = 1
     id_quizz = 1
 
+    db = get_db_connection()
+    cursor = db.cursor()
+
     query = """
     INSERT INTO reponses_apprenant (id_user, id_session, id_question, id_quizz, id_reponse) 
     VALUES (%s, %s, %s, %s, %s)
     """
     cursor.execute(query, (id_user, id_session, id_question, id_quizz, answer))
     db.commit()
+    cursor.close()
+    db.close()
 
     return jsonify({'status': 'success', 'message': 'Answer submitted successfully'})
 
@@ -138,11 +169,43 @@ def insert_token():
     if not token or not nom_complet:
         return jsonify({"error": "Token and Nom_complet are required"}), 400
 
+    db = get_db_connection()
+    cursor = db.cursor()
+
     query = "UPDATE utilisateurs SET token = %s WHERE CONCAT(nom_user, ' ', prenom_user) = %s"
     cursor.execute(query, (token, nom_complet))
     db.commit()
+    cursor.close()
+    db.close()
 
     return jsonify({'status': 'success', 'message': 'Token inserted successfully'})
+
+@app.route('/is_quizz_started', methods=['GET'])
+def is_quizz_started():
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    try:
+        query = "SELECT bool_quizz FROM quizzs"
+        cursor.execute(query)
+        session = cursor.fetchone()
+    finally:
+        cursor.close()
+        db.close()
+
+    if session and session['bool_quizz'] == '2':
+        return jsonify({"quizz_debut": True})
+    else:
+        return jsonify({"quizz_debut": False})
+
+if __name__ == '__main__':
+    app.run(debug=True) 
+
+# Endpoint par défaut pour les routes non définies
+@app.route('/')
+@app.route('/<path:path>')
+def catch_all(path=None):
+    return jsonify({"error": "Endpoint non fourni"}), 404
 
 
 if __name__ == '__main__':

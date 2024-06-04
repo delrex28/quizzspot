@@ -2,37 +2,38 @@
 session_start();
 include 'query.php'; // Inclure le fichier contenant la fonction db_connect()
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Vérifie si les champs email et mot de passe sont définis et non vides
-    if (isset($_POST["email"]) && isset($_POST["password"]) && !empty($_POST["email"]) && !empty($_POST["password"])) {
-        // Récupère les valeurs des champs
-        $email = $_POST["email"];
-        $password = $_POST["password"];
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-        // Faire une requête pour vérifier l'email et obtenir le hash du mot de passe
-        $query = "SELECT * FROM utilisateurs WHERE email_user = ?";
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (isset($_POST["email"]) && isset($_POST["password"]) && !empty($_POST["email"]) && !empty($_POST["password"])) {
+        $email = $_POST["email"];
+        $password = sha1($_POST["password"]); // Hash du mot de passe avec SHA-1
+
+        $query = "
+            SELECT utilisateurs.*, roles.nom_role 
+            FROM utilisateurs 
+            JOIN roles ON utilisateurs.role_user = roles.id_role 
+            WHERE email_user = ?
+        ";
         $user = verify_credentials($query, "s", $email);
-        // Si un utilisateur correspondant est trouvé, vérifier le mot de passe
-        if ($user&& password_verif($password, $user['mdp_user'])) {
-            // Vérifie le rôle de l'utilisateur
-            if ($user['role_user'] === 3) {
+
+        if ($user && $password == $user['mdp_user']) {
+            if ($user['nom_role'] === 'Administrateur' || $user['nom_role'] === 'Formateur') {
                 $_SESSION["user"] = $user; // Stocke les informations de l'utilisateur dans la session
                 header("Location: accueil.php");
                 exit();
-            } elseif ($user['role_user'] === 2) {
-                $_SESSION["user"] = $user; // Stocke les informations de l'utilisateur dans la session
-                header("Location: accueil.php");
-                exit();
-            } elseif ($user['role_user'] === 1) {
+            } elseif ($user['nom_role'] === 'Apprenant') {
                 $error = "Vous n'avez pas accès à cette page.";
             } else {
                 $error = "Rôle utilisateur non reconnu.";
             }
         } else {
-            $error = "Identifiants incorrects. Veuillez réessayer."; // Message d'erreur si les identifiants sont incorrects
+            $error = "Identifiants incorrects. Veuillez réessayer.";
         }
     } else {
-        $error = "Veuillez remplir tous les champs."; // Message d'erreur si des champs sont manquants
+        $error = "Veuillez remplir tous les champs.";
     }
 }
 
@@ -40,30 +41,22 @@ function verify_credentials($query, ...$params) {
     $conn = db_connect(); // Appelle la fonction pour établir la connexion à la base de données
     $stmt = $conn->prepare($query);
     if ($stmt === false) {
-        echo "Erreur de préparation de la requête: " . $conn->error;
-        return FALSE;
+        die("Erreur de préparation de la requête: " . $conn->error);
     }
     if ($stmt->bind_param(...$params) === false) {
-        echo "Erreur lors de la liaison des paramètres: " . $stmt->error;
-        return FALSE;
+        die("Erreur lors de la liaison des paramètres: " . $stmt->error);
     }
     if ($stmt->execute() === false) {
-        echo "Erreur lors de l'exécution de la requête: " . $stmt->error;
-        return FALSE;
+        die("Erreur lors de l'exécution de la requête: " . $stmt->error);
     }
     $result = $stmt->get_result();
+    if ($result === false) {
+        die("Erreur lors de la récupération des résultats: " . $stmt->error);
+    }
     $user = $result->fetch_assoc();
     $stmt->close();
     $conn->close();
     return $user;
-}
-
-function password_verif($password, $user_mdp) {
-    $hash_mdp=hash('sha1', $password);
-    if ($hash_mdp===$user_mdp) {
-        return TRUE;
-    }
-    return FALSE;
 }
 ?>
 
