@@ -1,31 +1,44 @@
+
 <?php
+function debug_to_console($data) {
+    $output = $data;
+    if (is_array($output))
+        $output = implode(',', $output);
+
+    echo "<script>console.log('Debug Objects: " . $output . "' );</script>";
+}
 // Vérifier si le token est spécifié
 if(!isset($_COOKIE['token'])) {
+    debug_to_console("pas de token");
     header('Location: connexion.html'); // Redirection vers la page de connexion
     exit; 
 }
 //Vérifier si l'apprenant à déjà répondu à la question
 $token = $_COOKIE['token'];
 // URL de l'endpoint de l'API avec le token  en argument
-$apiEndpoint = "http://localhost/SiteQuizz/json_quest_check.php?token=" . urlencode($token);
+$apiEndpoint = "https://app.quizzspot.fr/has_responded?token=" . urlencode($token);
 
 // Récupérer le contenu JSON de l'endpoint de l'API
 $json = file_get_contents($apiEndpoint);
 $data = json_decode($json, true);
 
 // Vérifier la réponse de l'API
-if(isset($data['repondu']) && $data['repondu'] === "true") {
+if(isset($data['has_responded']) && $data['has_responded'] === "true") {
+    debug_to_console("deja repondu");
     // L'apprenant a déjà répondu à cette question, il est redirigé vers la page d'attente entre questions
     header('Location: attente_question.php');
     exit;
-} elseif (isset($data['repondu']) && $data['repondu'] === "false" && isset($data['num_question'])) {
+} else {
+    debug_to_console("pas repondu");
+    }
     // L'apprenant n'a pas encore répondu à cette question, on continue
     
-} else {
-    // Erreur, redirection vers la page de connexion
-    header('Location: connexion.html');
-    exit;
-}
+// } else {
+//     // Erreur, redirection vers la page de connexion
+//     debug_to_console("erreur");
+//     header('Location: connexion.html');
+//     exit;
+// }
 
 
 ?>
@@ -55,11 +68,11 @@ if(isset($data['repondu']) && $data['repondu'] === "true") {
         function getNum() {
             var num_question = null;
             $.ajax({
-                url: 'http://localhost/SiteQuizz/num_question.json', // URL de l'API pour obtenir le numéro de la question en cours
+                url: 'https://app.quizzspot.fr/current_question', // URL de l'API pour obtenir le numéro de la question en cours
                 method: 'GET',
-                async: false, // Utilisation de la synchronisation pour attendre la réponse de l'API
+                async: true, // Utilisation de la synchronisation pour attendre la réponse de l'API
                 success: function(response) {
-                    num_question = response.num_question;
+                    num_question = response.current_question;
                     console.log("num question obtenu :" + num_question );
                 },
                 error: function(xhr, status, error) {
@@ -70,13 +83,13 @@ if(isset($data['repondu']) && $data['repondu'] === "true") {
         }
         //récupérer le temps imparti
         function getTemps() {
-            var temps = 30; // 30s par défaut
+            var temps = 60; // 30s par défaut
             $.ajax({
-                url: 'http://localhost/SiteQuizz/num_question.json', // URL de l'API pour obtenir le numéro de la question en cours
+                url: 'https://app.quizzspot.fr/current_question', // URL de l'API pour obtenir le temps de la question en cours
                 method: 'GET',
-                async: false, // Utilisation de la synchronisation pour attendre la réponse de l'API
+                async: true, // Utilisation de la synchronisation pour attendre la réponse de l'API
                 success: function(response) {
-                    temps = response.temps;
+                    temps = response.temps_alloue;
                     console.log("temps obtenu :" + temps );
                 },
                 error: function(xhr, status, error) {
@@ -96,11 +109,12 @@ if(isset($data['repondu']) && $data['repondu'] === "true") {
             if (token) {
                 // Envoyer la réponse à l'API
                 $.ajax({
-                    url: 'reponse.php', // URL de l'API pour soumettre la réponse
+                    url: 'https://app.quizzspot.fr/submit_answer', // URL de l'API pour soumettre la réponse
                     method: 'POST',
-                    data: { token: token, reponse: reponse, num_question: num_question },
+                    contentType: 'application/json',
+                    data: JSON.stringify({ token: token, nom_reponse: reponse}),
                     success: function(response) {                        
-                        console.log('Réponse soumise avec succès : ' + reponse + " num question " + num_question + " " + token);
+                        console.log('Réponse soumise avec succès : ' + reponse + " " + token);
                         // Rediriger l'utilisateur vers la page d'attente de la prochaine question
                         window.location.href = 'attente_question.php';
                     },
