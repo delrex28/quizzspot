@@ -110,6 +110,7 @@ class SessionSelectionPage(QWidget):
                 database='quizzspot'
             )
             cursor = conn.cursor()
+            cursor.execute("UPDATE sessions SET bool_session = 1")
             cursor.execute("SELECT nom_session, date_session, id_quizz, id_session FROM sessions WHERE id_user = %s", (self.user_id,))
             sessions = cursor.fetchall()
 
@@ -135,9 +136,9 @@ class SessionSelectionPage(QWidget):
                 database='quizzspot'
             )
             cursor = conn.cursor()
+            cursor.execute("UPDATE sessions SET bool_session = 2 WHERE id_session = %s", (id_session_selectionne))
             cursor.execute("UPDATE quizzs SET bool_quizz = 1")
-            conn.commit()
-            cursor.execute("UPDATE quizzs SET bool_quizz = 2 WHERE id_quizz = %s", (id_quizz_selectionne,))
+            cursor.execute("UPDATE utilisateurs SET bool_connexion = 0")
             conn.commit()
             cursor.close()
             conn.close()
@@ -179,9 +180,12 @@ class AffichageQR(QWidget):
         self.switch_button = QPushButton("Voir les apprenants connectés")
         self.switch_button.clicked.connect(self.switch_to_apprenants_page)
         layout.addWidget(self.switch_button, alignment=Qt.AlignCenter)
+        self.close_button = QPushButton("Quitter")
+        self.close_button.clicked.connect(self.close)
+        layout.addWidget(self.close_button, alignment=Qt.AlignCenter)
 
     def load_qr_code(self):
-        path = "G:\QuizzSpot\Appliquizz\mon_venv\qrcode.png"
+        path = "/data/quizzspot/QR Code Quizzspot.png"
         pixmap = QPixmap(path)
 
         if pixmap.isNull():
@@ -198,6 +202,7 @@ class AffichageQR(QWidget):
 
     def generer_code_et_stocke(self):
         code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        # code = "1JZUNM"
 
         try:
             conn = pymysql.connect(
@@ -295,7 +300,22 @@ class ApprenantsPage(QWidget):
             print(f"Erreur lors de la récupération des apprenants : {e}")
 
     def start_quiz(self):
+        try:
+            conn = pymysql.connect(
+                host='quizzspot.fr',
+                user='web',
+                password='Uslof504',
+                database='quizzspot'
+            )
+            cursor = conn.cursor()
+            cursor.execute("UPDATE quizzs SET bool_quizz = 2 WHERE id_quizz = %s", (self.id_quizz_selectionne,))
+            conn.commit()
+            cursor.close()
+            conn.close()
+        except pymysql.Error as e:
+            print(f"Erreur lors de l'insertion dans la base de données : {e}")
         self.parent.afficher_page_questions(self.id_quizz_selectionne, self.id_session)
+
 
     def switch_to_QR_page(self):
         self.parent.afficher_page_QR(self.id_quizz_selectionne, self.id_session)
@@ -400,6 +420,21 @@ class QuestionsPage(QWidget):
             self.question_label.setFont(QFont('Arial', 35))
 
             self.clear_responses()  # Clear les réponses avant d'afficher la nouvelle question
+            try:
+                conn = pymysql.connect(
+                    host='quizzspot.fr',
+                    user='web',
+                    password='Uslof504',
+                    database='quizzspot'
+            )
+                cursor = conn.cursor()
+                cursor.execute("UPDATE questions set bool_question = 1")
+                cursor.execute("UPDATE questions set bool_question = 2 where id_question =%s", (question_id) )
+                print(f"id question selectionée :  {question_id}")
+                conn.commit()
+                conn.close()
+            except pymysql.Error as e:
+                print(f"Erreur lors de l'activation de la question' : {e}")
                     
             responses = self.load_responses(question_id)
             for response in responses:
@@ -416,7 +451,20 @@ class QuestionsPage(QWidget):
             self.timer.stop()
             self.question_label.setText("Le quiz est terminé.")
             self.clear_responses()  # Clear les réponses à la fin du quiz
-            self.clear_quiz_code()  # Efface le code du quiz
+            self.clear_quiz_code()
+            try:
+                conn = pymysql.connect(
+                    host='quizzspot.fr',
+                    user='web',
+                    password='Uslof504',
+                    database='quizzspot'
+            )
+                cursor = conn.cursor()
+                cursor.execute("UPDATE questions set bool_question = 1")
+                conn.commit()
+                conn.close()
+            except pymysql.Error as e:
+                print(f"Erreur lors de l'activation de la question' : {e}")  # Efface le code du quiz
             QTimer.singleShot(10000, self.close)  # Ferme l'application après 10 secondes
 
     def clear_quiz_code(self):
