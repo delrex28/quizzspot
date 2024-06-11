@@ -148,6 +148,9 @@ section{
     scale: 1.1;
 }
 
+.left a {
+    text-decoration: none;
+}
 .left button{
     margin-top: 20px;
     padding: 10px;

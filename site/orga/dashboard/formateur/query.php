@@ -1,9 +1,9 @@
 <?php
 function request($query){
     $servername = 'localhost';
-    $username = 'malt';
-    $password = 'Lojs6@331';
-    $db_name = 'quizz';
+    $username = 'web';
+    $password = 'Uslof504';
+    $db_name = 'quizzspot';
 
 	$driver = new mysqli_driver();
 	$driver->report_mode = MYSQLI_REPORT_STRICT;

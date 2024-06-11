@@ -39,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $error = "Cette adresse e-mail est déjà utilisée. Veuillez en choisir une autre.";
         } else {
             // L'email n'est pas déjà utilisé, insérer l'utilisateur dans la base de données
-            $query_insert_user = "INSERT INTO utilisateurs (prenom_user, nom_user, email_user, mdp_user, role_user) VALUES (?, ?, ?, ?, 'formateur')";
+            $query_insert_user = "INSERT INTO utilisateurs (prenom_user, nom_user, email_user, mdp_user, role_user) VALUES (?, ?, ?, ?, 2)";
             $stmt_insert_user = $conn->prepare($query_insert_user);
             $stmt_insert_user->bind_param("ssss", $prenom, $nom, $email, $hashed_password);
 

@@ -1,3 +1,92 @@
+<?php
+session_start();
+include 'query.php'; // Inclure le fichier contenant la fonction db_connect()
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (isset($_POST["email"]) && isset($_POST["password"]) && !empty($_POST["email"]) && !empty($_POST["password"])) {
+        $email = $_POST["email"];
+        $password = $_POST["password"];
+
+        // Faire une requête pour vérifier l'email et obtenir le hash du mot de passe
+        $query = "SELECT * FROM utilisateurs WHERE email_user = ?";
+        $user = verify_credentials($query, "s", $email);
+
+        if ($user) {
+            // Vérification avec SHA1 (ancien hachage)
+            if ($user['mdp_user'] === sha1($password)) {
+                // Réhachage du mot de passe avec une méthode plus sécurisée
+                $newHash = password_hash($password, PASSWORD_DEFAULT);
+                update_password_hash($user['id_user'], $newHash);
+                
+                $user['mdp_user'] = $newHash; // Met à jour le hash de l'utilisateur pour la session
+            }
+
+            // Vérification avec password_verify pour le nouveau hash
+            if (password_verify($password, $user['mdp_user'])) {
+                $role = $user['role_user'];
+                if ($role === 3 || $role === 2) {
+                    $_SESSION["user"] = $user;
+                    header("Location: dashboard/accueil.php");
+                    exit();
+                } elseif ($role === 1) {
+                    $error = "Les apprenants ne peuvent pas se connecter.";
+                } else {
+                    $error = "Rôle utilisateur non reconnu.";
+                }
+            } else {
+                $error = "Identifiants incorrects. Veuillez réessayer.";
+            }
+        } else {
+            $error = "Identifiants incorrects. Veuillez réessayer.";
+        }
+    } else {
+        $error = "Veuillez remplir tous les champs.";
+    }
+}
+
+function verify_credentials($query, ...$params) {
+    $conn = db_connect();
+    $stmt = $conn->prepare($query);
+    if ($stmt === false) {
+        echo "Erreur de préparation de la requête: " . $conn->error;
+        exit;
+    }
+    if ($stmt->bind_param(...$params) === false) {
+        echo "Erreur lors de la liaison des paramètres: " . $stmt->error;
+        exit;
+    }
+    if ($stmt->execute() === false) {
+        echo "Erreur lors de l'exécution de la requête: " . $stmt->error;
+        exit;
+    }
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
+    $stmt->close();
+    $conn->close();
+    return $user;
+}
+
+function update_password_hash($user_id, $new_hash) {
+    $conn = db_connect();
+    $query = "UPDATE utilisateurs SET mdp_user = ? WHERE id_user = ?";
+    $stmt = $conn->prepare($query);
+    if ($stmt === false) {
+        echo "Erreur de préparation de la requête: " . $conn->error;
+        exit;
+    }
+    if ($stmt->bind_param("si", $new_hash, $user_id) === false) {
+        echo "Erreur lors de la liaison des paramètres: " . $stmt->error;
+        exit;
+    }
+    if ($stmt->execute() === false) {
+        echo "Erreur lors de l'exécution de la requête: " . $stmt->error;
+        exit;
+    }
+    $stmt->close();
+    $conn->close();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="fr-FR">
 <head>
@@ -14,7 +103,7 @@
         <nav>
             <a href="https://www.quizzspot.fr">Accueil</a>
             <a href="https://orga.quizzspot.fr">Espace Orga</a>
-            <a href="https://admin.quizzspot.fr">Espace Administrateur</a>
+            <!-- <a href="https://admin.quizzspot.fr">Espace Administrateur</a> -->
             <a href="https://bilan.quizzspot.fr">Espace Apprenant</a>
         </nav>
 
@@ -30,7 +119,7 @@
     <section>
         <div class="form-box">
             <div class="form-value">
-                <form action="verification.php" method="post">
+                <form method="post">
                     <h2>Se connecter</h2>
                     <div class="input-box">
                         <ion-icon name="mail-outline"></ion-icon>
@@ -52,10 +141,8 @@
 
                     <button type="submit">Connexion</button>
                     <?php
-                        if(isset($_GET['erreur'])){
-                            $err = $_GET['erreur'];
-                            if($err==1 || $err==2)
-                                echo "<p style='color:yellow'>Utilisateur ou mot de passe incorrect</p>";
+                        if (isset($error)) {
+                            echo "<p style='color:yellow'>$error</p>";
                         }
                     ?>
                 </form>

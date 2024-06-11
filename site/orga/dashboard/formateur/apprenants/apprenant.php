@@ -97,7 +97,7 @@ $role = $user['role_user'];
                         }
                         $requete_sql='update utilisateurs set nom_user="'.$_POST['nom_user'].'", prenom_user="'.$_POST['prenom_user'].'", bool_user='.$boolean.' where id_user='.$_GET['id_apprenant'].';';
                     } else {
-                        $requete_sql='insert into utilisateurs (nom_user, prenom_user, bool_user, role_user) values("'.$_POST['nom_user'].'", "'.$_POST['prenom_user'].'", 1, "apprenant");';
+                        $requete_sql='insert into utilisateurs (nom_user, prenom_user, bool_user, role_user) values("'.$_POST['nom_user'].'", "'.$_POST['prenom_user'].'", 1, 1);'; // Modification de role_user ici
                     }
                     $requete=request($requete_sql);
                     header("Location: .");

@@ -17,7 +17,7 @@ if (!$conn) {
 $success_message = "";
 $error = "";
 
-// Récupérer le numéro du prochain quizz
+// Récupère le numéro du prochain quizz
 $query_next_quizz_id = "SELECT MAX(id_quizz) AS max_id FROM quizzs";
 $result_next_quizz_id = $conn->query($query_next_quizz_id);
 
@@ -28,8 +28,21 @@ if ($result_next_quizz_id) {
     $error = "Erreur lors de la récupération du numéro du quizz: " . $conn->error;
 }
 
-// Récupérer les questions existantes
-$query_questions = "SELECT id_question, intitule_question FROM questions";
+// Récupérer les catégories existantes
+$query_categories = "SELECT id_categorie, nom_categorie FROM categories";
+$result_categories = $conn->query($query_categories);
+
+if ($result_categories) {
+    $categories = [];
+    while ($row = $result_categories->fetch_assoc()) {
+        $categories[] = $row;
+    }
+} else {
+    $error = "Erreur lors de la récupération des catégories: " . $conn->error;
+}
+
+// Récupère les questions existantes
+$query_questions = "SELECT id_question, intitule_question, id_categorie FROM questions";
 $result_questions = $conn->query($query_questions);
 
 if ($result_questions) {
@@ -44,7 +57,8 @@ if ($result_questions) {
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (isset($_POST["nom_quizz"]) && !empty($_POST["questions"])) {
         $nom_quizz = $_POST["nom_quizz"];
-        $selected_questions = $_POST["questions"];
+        $temps_limite = $_POST["temps_limite"];
+        $selected_questions = explode(',', $_POST["questions"]);
 
         $query_insert_quizz = "INSERT INTO quizzs (id_quizz, nom_quizz, bool_quizz) VALUES (?, ?, 1)";
         $stmt_insert_quizz = $conn->prepare($query_insert_quizz);
@@ -52,17 +66,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($stmt_insert_quizz) {
             $stmt_insert_quizz->bind_param("is", $next_quizz_id, $nom_quizz);
             if ($stmt_insert_quizz->execute()) {
-                $stmt_update_question = $conn->prepare("UPDATE questions SET id_quizz = ? WHERE id_question = ?");
-                if ($stmt_update_question) {
-                    foreach ($selected_questions as $question_id) {
-                        $stmt_update_question->bind_param("ii", $next_quizz_id, $question_id);
-                        if (!$stmt_update_question->execute()) {
-                            $error = "Erreur lors de l'association des questions au quizz: " . $stmt_update_question->error;
+                // Insère le temps limité dans la table 'modalites_quizz'
+                $query_insert_temps = "INSERT INTO modalites_quizz (nom_moda_quizz, valeur_moda_quizz, id_quizz) VALUES ('Temps Limité', ?, ?)";
+                $stmt_insert_temps = $conn->prepare($query_insert_temps);
+                if ($stmt_insert_temps) {
+                    $stmt_insert_temps->bind_param("si", $temps_limite, $next_quizz_id);
+                    if ($stmt_insert_temps->execute()) {
+                        $stmt_update_question = $conn->prepare("UPDATE questions SET id_quizz = ? WHERE id_question = ?");
+                        if ($stmt_update_question) {
+                            foreach ($selected_questions as $question_id) {
+                                $stmt_update_question->bind_param("ii", $next_quizz_id, $question_id);
+                                if (!$stmt_update_question->execute()) {
+                                    $error = "Erreur lors de l'association des questions au quizz: " . $stmt_update_question->error;
+                                }
+                            }
+                            $success_message = "Le quizz a été créé avec succès.";
+                        } else {
+                            $error = "Erreur lors de la préparation de la mise à jour des questions: " . $conn->error;
                         }
+                    } else {
+                        $error = "Erreur lors de la création du temps limité: " . $stmt_insert_temps->error;
                     }
-                    $success_message = "Le quizz a été créé avec succès.";
                 } else {
-                    $error = "Erreur lors de la préparation de la mise à jour des questions: " . $conn->error;
+                    $error = "Erreur lors de la préparation de l'insertion du temps limité: " . $conn->error;
                 }
             } else {
                 $error = "Erreur lors de la création du quizz: " . $stmt_insert_quizz->error;
@@ -90,11 +116,87 @@ $conn->close();
             cursor: pointer;
         }
     </style>
+    <script>
+        var selectedQuestions = []; // Array to store selected questions
+
+        function retour() {
+            window.location.href = "index.php";
+        }
+
+        function updateQuestions() {
+            var selectedCategory = document.getElementById('categorie').value;
+            var questionsDiv = document.getElementById('questions');
+            questionsDiv.innerHTML = '';
+
+            var questions = <?php echo json_encode($questions); ?>;
+            questions.forEach(function(question) {
+                if (question.id_categorie == selectedCategory) {
+                    var checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.name = 'question_checkboxes';
+                    checkbox.value = question.id_question;
+                    checkbox.id = 'question' + question.id_question;
+                    checkbox.classList.add('form-check-input');
+
+                    var label = document.createElement('label');
+                    label.htmlFor = checkbox.id;
+                    label.textContent = question.intitule_question;
+                    label.classList.add('form-check-label', 'ms-2');
+
+                    var div = document.createElement('div');
+                    div.className = 'form-check';
+                    div.appendChild(checkbox);
+                    div.appendChild(label);
+
+                    if (selectedQuestions.includes(question.id_question)) {
+                        checkbox.checked = true; // Check the checkbox if the question is already selected
+                    }
+
+                    questionsDiv.appendChild(div);
+                }
+            });
+        }
+
+        // Add event listener to update selected questions array when checkbox state changes
+        document.addEventListener('change', function(event) {
+            if (event.target && event.target.type === 'checkbox' && event.target.name === 'question_checkboxes') {
+                var questionId = parseInt(event.target.value);
+                var selectedQuestionsDiv = document.getElementById('selected-questions');
+                if (event.target.checked && !selectedQuestions.includes(questionId)) {
+                    selectedQuestions.push(questionId); // Add question to the array if checkbox is checked
+
+                    // Add to the selected questions list
+                    var selectedQuestionLabel = document.createElement('label');
+                    selectedQuestionLabel.textContent = event.target.nextElementSibling.textContent;
+                    selectedQuestionLabel.id = 'selected-question' + questionId;
+                    selectedQuestionLabel.classList.add('form-check-label', 'ms-2');
+
+                    var selectedQuestionDiv = document.createElement('div');
+                    selectedQuestionDiv.className = 'form-check';
+                    selectedQuestionDiv.appendChild(selectedQuestionLabel);
+                    selectedQuestionsDiv.appendChild(selectedQuestionDiv);
+                } else if (!event.target.checked && selectedQuestions.includes(questionId)) {
+                    var index = selectedQuestions.indexOf(questionId);
+                    if (index !== -1) {
+                        selectedQuestions.splice(index, 1); // Remove question from the array if checkbox is unchecked
+
+                        // Remove from the selected questions list
+                        var selectedQuestionLabelToRemove = document.getElementById('selected-question' + questionId);
+                        if (selectedQuestionLabelToRemove) {
+                            selectedQuestionLabelToRemove.parentNode.remove();
+                        }
+                    }
+                }
+                // Update the hidden input with the selected question IDs
+                document.getElementById('selected_questions_input').value = selectedQuestions.join(',');
+            }
+        });
+    </script>
 </head>
 <body>
     <div class="container-fluid">
         <div class="row m-4">
-            <img id="retour" class="col-auto" src="../img/retour.png" alt="Retour" style="width:5%;" onclick="retour()">
+            <img id="retour" class="col-auto" src="../../img/retour.png" alt="Retour" style="width:5%;" onclick="retour()">
             <div class="col row justify-content-center">
                 <h1 class="col-auto align-self-center" style="margin-right:7%;">Page création Quizz</h1>
             </div>
@@ -112,38 +214,44 @@ $conn->close();
             <form action="" method="post" class="col-auto">
                 <table class="border border-black border-2 table table-striped fs-4">
                     <tr>
-                        <td class="border border-black border-end border-2">Nom du Quizz</td>
-                        <td class="border border-black border-end border-2"><input class="form-control border border-black border-end border-2" type="text" name="nom_quizz" placeholder="Entrer un nom de quizz" required/></td>
-                    </tr>
-                    <tr>
-                        <td class="border border-black border-end border-2">Numéro du Quizz</td>
-                        <td class="border border-black border-end border-2"><input class="form-control border border-black border-end border-2" type="text" value="<?php echo $next_quizz_id; ?>" readonly/></td>
-                    </tr>
-                    <tr>
-                        <td class="border border-black border-end border-2">Questions disponibles</td>
-                        <td class="border border-black border-end border-2">
-                            <?php foreach ($questions as $question): ?>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="questions[]" value="<?php echo $question['id_question']; ?>" id="question<?php echo $question['id_question']; ?>">
-                                    <label class="form-check-label" for="question<?php echo $question['id_question']; ?>">
-                                        <?php echo $question['intitule_question']; ?>
-                                    </label>
-                                </div>
-                            <?php endforeach; ?>
+                        <td class="border border-black border-2 p-3">Nom du quizz</td>
+                        <td class="border border-black border-2 p-3">
+                            <input class="form-control" type="text" name="nom_quizz" required>
                         </td>
                     </tr>
+                    <tr>
+                        <td class="border border-black border-2 p-3">Temps limite (en secondes)</td>
+                        <td class="border border-black border-2 p-3">
+                            <input class="form-control" type="number" name="temps_limite" required>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="border border-black border-2 p-3">Catégorie</td>
+                        <td class="border border-black border-2 p-3">
+                            <select class="form-select" id="categorie" name="categorie" onchange="updateQuestions()" required>
+                                <option value="" disabled selected>Choisir une catégorie</option>
+                                <?php foreach ($categories as $categorie) : ?>
+                                    <option value="<?php echo $categorie['id_categorie']; ?>"><?php echo $categorie['nom_categorie']; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="border border-black border-2 p-3">Questions</td>
+                        <td class="border border-black border-2 p-3" id="questions"></td>
+                    </tr>
+                    <tr>
+                        <td class="border border-black border-2 p-3">Questions sélectionnées</td>
+                        <td class="border border-black border-2 p-3" id="selected-questions"></td>
+                    </tr>
                 </table>
-                <div class="row justify-content-center">
-                    <button type="submit" class="border border-black border-2 col-auto btn btn-success btn-lg">Créer</button>
+                <!-- Hidden input to store selected question IDs -->
+                <input type="hidden" id="selected_questions_input" name="questions" value="">
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary btn-lg">Créer le Quizz</button>
                 </div>
             </form>
         </div>
     </div>
-
-    <script>
-        function retour() {
-            window.location.href = "index.php";
-        }
-    </script>
 </body>
 </html>

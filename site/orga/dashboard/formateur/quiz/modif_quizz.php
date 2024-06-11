@@ -19,7 +19,7 @@ if (!isset($_GET['id'])) {
 $id_quizz = $_GET['id'];
 
 // Récupère les informations du quizz depuis la base de données en utilisant l'ID
-$query = "SELECT nom_quizz, bool_quizz FROM quizzs WHERE id_quizz = $id_quizz";
+$query = "SELECT nom_quizz FROM quizzs WHERE id_quizz = $id_quizz";
 $result = $conn->query($query);
 
 // Vérifie si le quizz existe dans la base de données
@@ -31,22 +31,55 @@ if ($result->num_rows == 0) {
 // Récupère les informations du quizz
 $quizz_info = $result->fetch_assoc();
 $nom_quizz = $quizz_info['nom_quizz'];
-$bool_quizz = $quizz_info['bool_quizz'];
+
+// Récupère le temps limité du quizz depuis la table modalites_quizz
+$query_temps_limite = "SELECT valeur_moda_quizz FROM modalites_quizz WHERE id_quizz = $id_quizz AND nom_moda_quizz = 'Temps Limité'";
+$result_temps_limite = $conn->query($query_temps_limite);
+
+if ($result_temps_limite->num_rows > 0) {
+    $temps_limite_info = $result_temps_limite->fetch_assoc();
+    $temps_limite = $temps_limite_info['valeur_moda_quizz'];
+} else {
+    $temps_limite = ""; // Valeur par défaut si le temps limité n'existe pas
+}
 
 // Vérifie si le formulaire a été soumis pour la mise à jour des informations
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Récupérer les nouvelles valeurs du formulaire
     $nouveau_nom_quizz = $_POST['nom_quizz'];
-    $nouveau_bool_quizz = $_POST['bool_quizz'];
+    $nouveau_temps_limite = $_POST['temps_limite'];
 
     // Mettre à jour les informations du quizz dans la base de données
-    $update_query = "UPDATE quizzs SET nom_quizz = ?, bool_quizz = ? WHERE id_quizz = ?";
+    $update_query = "UPDATE quizzs SET nom_quizz = ? WHERE id_quizz = ?";
     $stmt = $conn->prepare($update_query);
-    $stmt->bind_param("sii", $nouveau_nom_quizz, $nouveau_bool_quizz, $id_quizz);
+    $stmt->bind_param("si", $nouveau_nom_quizz, $id_quizz);
     $stmt->execute();
 
+    // Mettre à jour le temps limité dans la table modalites_quizz
+    if (!empty($nouveau_temps_limite)) {
+        // Vérifie si un enregistrement existe déjà pour ce quizz
+        $check_query = "SELECT * FROM modalites_quizz WHERE id_quizz = ? AND nom_moda_quizz = 'Temps Limité'";
+        $check_stmt = $conn->prepare($check_query);
+        $check_stmt->bind_param("i", $id_quizz);
+        $check_stmt->execute();
+        $check_result = $check_stmt->get_result();
+
+        if ($check_result->num_rows > 0) {
+            // Mise à jour de l'enregistrement existant
+            $update_temps_query = "UPDATE modalites_quizz SET valeur_moda_quizz = ? WHERE id_quizz = ? AND nom_mode_quizz = 'Temps Limité'";
+            $stmt_temps = $conn->prepare($update_temps_query);
+            $stmt_temps->bind_param("si", $nouveau_temps_limite, $id_quizz);
+        } else {
+            // Insertion d'un nouvel enregistrement
+            $insert_temps_query = "INSERT INTO modalites_quizz (nom_moda_quizz, valeur_moda_quizz, id_quizz) VALUES ('Temps Limité', ?, ?)";
+            $stmt_temps = $conn->prepare($insert_temps_query);
+            $stmt_temps->bind_param("si", $nouveau_temps_limite, $id_quizz);
+        }
+        $stmt_temps->execute();
+    }
+
     // Redirige vers la page index.php après la modification
-    header("Location: index.php");
+	header("Location: index.php");
     exit();
 }
 ?>
@@ -84,13 +117,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <td><input class="form-control" type="text" id="nom_quizz" name="nom_quizz" value="<?php echo htmlspecialchars($nom_quizz); ?>" required/></td>
                     </tr>
                     <tr>
-                        <td class="border-end border-black">Statut</td>
-                        <td>
-                            <select class="form-control" id="bool_quizz" name="bool_quizz" required>
-                                <option value="1" <?php echo $bool_quizz == 1 ? 'selected' : ''; ?>>Actif</option>
-                                <option value="0" <?php echo $bool_quizz == 0 ? 'selected' : ''; ?>>Inactif</option>
-                            </select>
-                        </td>
+                        <td class="border-end border-black">Temps Limité (en secondes)</td>
+                        <td><input class="form-control" type="number" id="temps_limite" name="temps_limite" value="<?php echo htmlspecialchars($temps_limite); ?>" required/></td>
                     </tr>
                 </table>
                 <div class="row justify-content-center">

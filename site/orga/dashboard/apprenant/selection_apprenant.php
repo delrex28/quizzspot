@@ -20,7 +20,7 @@ function get_apprenants($id_groupe) {
         SELECT u.id_user, u.nom_user, u.prenom_user 
         FROM utilisateurs u
         JOIN rel_utilisateurs_groupes rug ON u.id_user = rug.id_user
-        WHERE rug.id_groupe = $id_groupe";
+        WHERE rug.id_groupe = $id_groupe AND u.role_user = 1"; // Modification du rôle utilisateur ici
     $result = $conn->query($query);
 
     if ($result === false) {

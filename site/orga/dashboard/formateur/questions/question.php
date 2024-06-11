@@ -107,12 +107,12 @@ $role = $user['role_user'];
                             } else {
                                 $boolean="0";
                             }
-                            $query='update questions set intitule_question="'.$_POST['intitule_question'].'", bool_question='.$boolean.' where id_question='.$_GET['id_question'].';';
+                            $query='update questions set intitule_question="'.$_POST['intitule_question'].'", bool_question='.$boolean.', id_niveau='.$_POST['id_niveau'].', id_categorie='.$_POST['id_categorie'].' where id_question='.$_GET['id_question'].';';
                             array_push($requetes_sql, $query);
                             $query='delete from reponses where id_question='.$_GET['id_question'].';';
                             array_push($requetes_sql, $query);
                         } else {
-                            $query='INSERT INTO questions (intitule_question, bool_question) VALUES ("'.$_POST['intitule_question'].'", "1");';
+                            $query='INSERT INTO questions (intitule_question, bool_question, id_niveau, id_categorie) VALUES ("'.$_POST['intitule_question'].'", 1, '.$_POST['id_niveau'].', '.$_POST['id_categorie'].');';
                             $id_question=request($query);
                         }
 
@@ -142,7 +142,7 @@ $role = $user['role_user'];
                     }
                     
                     if (isset($_GET['id_question'])) {
-                        $infos=request('select intitule_question, bool_question from questions where id_question='.$_GET['id_question'].';')[1];
+                        $infos=request('select intitule_question, bool_question, id_niveau, id_categorie from questions where id_question='.$_GET['id_question'].';')[1];
                     }
                     echo '<table id="table_questions" class="border border-black border-2 table table-striped fs-4">';
                         echo '<tr>';
@@ -153,6 +153,44 @@ $role = $user['role_user'];
                             }
                             echo '></td>';
                             echo '<td>Réponses</td>';
+                        echo '</tr>';
+
+                        echo '<tr>';
+                            echo '<td class="border-end border-black">Niveau</td>';
+                            echo '<td>';
+                                $niveaux=request('select id_niveau, nom_niveau from niveau;');
+                                echo '<select class="form-select" name="id_niveau" id="id_niveau-select" required>';
+                                foreach ($niveaux as $niveau) {
+                                    echo '<option value="'.$niveau[1].'"';
+                                    if (isset($_GET['id_question'])) {
+                                        if ($infos[3]==$niveau[1]) {
+                                            echo ' selected';
+                                        }
+                                    }
+                                    echo '>'.$niveau[2].'</option>';
+                                }
+                                echo '</select>';
+                            echo '</td>';
+                            echo '<td></td>';
+                        echo '</tr>';
+					
+						echo '<tr>';
+                            echo '<td class="border-end border-black">Catégorie</td>';
+                            echo '<td>';
+                                $niveaux=request('select id_categorie, nom_categorie from categories where bool_categorie=1;');
+                                echo '<select class="form-select" name="id_categorie" id="id_categorie" required>';
+                                foreach ($niveaux as $niveau) {
+                                    echo '<option value="'.$niveau[1].'"';
+                                    if (isset($_GET['id_question'])) {
+                                        if ($infos[3]==$niveau[1]) {
+                                            echo ' selected';
+                                        }
+                                    }
+                                    echo '>'.$niveau[2].'</option>';
+                                }
+                                echo '</select>';
+                            echo '</td>';
+                            echo '<td></td>';
                         echo '</tr>';
 
                         if (isset($_GET['id_question'])) {

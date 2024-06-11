@@ -12,8 +12,7 @@ if (!isset($_SESSION["user"])) {
 
 $query = "SELECT q.id_quizz, q.nom_quizz, q.bool_quizz, 
           (SELECT COUNT(*) FROM questions WHERE id_quizz = q.id_quizz) AS nb_questions,
-          (SELECT valeur_moda_quizz FROM modalites_quizz WHERE id_quizz = q.id_quizz AND nom_mode_quizz = 'Temps Limité') AS temps_limite,
-          (SELECT valeur_moda_quizz FROM modalites_quizz WHERE id_quizz = q.id_quizz AND nom_mode_quizz = 'Temps par Question') AS temps_par_question
+          (SELECT valeur_moda_quizz FROM modalites_quizz WHERE id_quizz = q.id_quizz AND nom_moda_quizz = 'Temps Limité') AS temps_limite
           FROM quizzs q";
 $result = $conn->query($query);
 ?>
@@ -51,7 +50,6 @@ $result = $conn->query($query);
                 $statut = $row["bool_quizz"];
                 $nb_questions = $row["nb_questions"];
                 $temps_limite = $row["temps_limite"];
-                $temps_par_question = $row["temps_par_question"];
         ?>
                 <div class="col">
                     <div class="row mt-5">
@@ -65,7 +63,6 @@ $result = $conn->query($query);
                                     <h5 class="text-primary fs-6">Quizz: <?php echo $nom_quizz; ?></h5>
                                     <p>Nombre de questions: <?php echo $nb_questions; ?></p>
                                     <p>Temps limité: <?php echo $temps_limite ? $temps_limite : 'N/A'; ?></p>
-                                    <p>Temps par question: <?php echo $temps_par_question ? $temps_par_question : 'N/A'; ?></p>
                                 </div>
                                 <div class="col">
                                     <?php if ($statut == 1): ?>

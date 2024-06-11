@@ -1,56 +1,45 @@
 <?php
 session_start();
-include 'query.php'; // Inclure le fichier contenant la fonction db_connect()
-
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (isset($_POST["email"]) && isset($_POST["password"]) && !empty($_POST["email"]) && !empty($_POST["password"])) {
-        $email = $_POST["email"];
-        $password = sha1($_POST["password"]); // Hash du mot de passe avec SHA-1
-
-        $query = "SELECT * FROM utilisateurs WHERE email_user = ?";
-        $user = verify_credentials($query, "s", $email);
-
-        if ($user && $password == $user['mdp_user']) {
-            if ($user['role_user'] === 'administrateur' || $user['role_user'] === 'formateur') {
-                $_SESSION["user"] = $user; // Stocke les informations de l'utilisateur dans la session
-                header("Location: accueil.php");
-                exit();
-            } elseif ($user['role_user'] === 'apprenant') {
-                $error = "Vous n'avez pas accès à cette page.";
-            } else {
-                $error = "Rôle utilisateur non reconnu.";
-            }
-        } else {
-            $error = "Identifiants incorrects. Veuillez réessayer.";
-        }
-    } else {
-        $error = "Veuillez remplir tous les champs.";
-    }
+if(isset($_POST['email']) && isset($_POST['password']))
+{
+ // connexion à la base de données
+ $db_host = 'localhost';
+ $db_username = 'web';
+ $db_password = 'Uslof504';
+ $db_name = 'quizzspot';
+ $db = mysqli_connect($db_host, $db_username, $db_password,$db_name)
+ or die('could not connect to database');
+ 
+ // on applique les deux fonctions mysqli_real_escape_string et htmlspecialchars
+ // pour éliminer toute attaque de type injection SQL et XSS
+ $username = mysqli_real_escape_string($db,htmlspecialchars($_POST['email'])); 
+ $password = mysqli_real_escape_string($db,htmlspecialchars($_POST['password']));
+ 
+ if($username !== "" && $password !== "")
+ {
+ $requete = "SELECT count(*) FROM utilisateurs where 
+ email_user = '".$username."' and mdp_user = '".sha1($password)."' ";
+ $exec_requete = mysqli_query($db,$requete);
+ $reponse = mysqli_fetch_array($exec_requete);
+ $count = $reponse['count(*)'];
+ if($count!=0) // nom d'utilisateur et mot de passe correctes
+ {
+ $_SESSION['username'] = $username;
+ header('Location: dashboard/');
+ }
+ else
+ {
+ header('Location: index.php?erreur=1'); // utilisateur ou mot de passe incorrect
+ }
+ }
+ else
+ {
+ header('Location: index.php?erreur=2'); // utilisateur ou mot de passe vide
+ }
 }
-
-function verify_credentials($query, ...$params) {
-    $conn = db_connect(); // Appelle la fonction pour établir la connexion à la base de données
-    $stmt = $conn->prepare($query);
-    if ($stmt === false) {
-        die("Erreur de préparation de la requête: " . $conn->error);
-    }
-    if ($stmt->bind_param(...$params) === false) {
-        die("Erreur lors de la liaison des paramètres: " . $stmt->error);
-    }
-    if ($stmt->execute() === false) {
-        die("Erreur lors de l'exécution de la requête: " . $stmt->error);
-    }
-    $result = $stmt->get_result();
-    if ($result === false) {
-        die("Erreur lors de la récupération des résultats: " . $stmt->error);
-    }
-    $user = $result->fetch_assoc();
-    $stmt->close();
-    $conn->close();
-    return $user;
+else
+{
+ header('Location: index.php');
 }
+mysqli_close($db); // fermer la connexion
 ?>

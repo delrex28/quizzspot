@@ -1,7 +1,7 @@
 <?php
 function db_connect() {
     $servername = 'localhost';
-    $username = 'root';
+    $username = 'web';
     $password = 'Uslof504';
     $db_name = 'quizzspot';
 

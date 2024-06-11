@@ -1,0 +1,17 @@
+{
+    "0": [
+        { "question": "Quelle est la dérivée de x^2 ?", "reponse_apprenant": "2x", "reponse_correcte": "2x", "note": "VRAI", "categorie": "Mathématiques" },
+        { "question": "Quelle est l'intégrale de 2x ?", "reponse_apprenant": "x^2", "reponse_correcte": "x^2 + C", "note": "FAUX", "categorie": "Mathématiques" },
+        { "question": "Combien font 2+2 ?", "reponse_apprenant": "4", "reponse_correcte": "4", "note": "VRAI", "categorie": "Mathématiques" }
+    ],
+    "1": [
+        { "question": "Quelle est la capitale de la France ?", "reponse_apprenant": "Paris", "reponse_correcte": "Paris", "note": "VRAI", "categorie": "Géographie" },
+        { "question": "Combien y a-t-il de continents ?", "reponse_apprenant": "7", "reponse_correcte": "7", "note": "VRAI", "categorie": "Géographie" },
+        { "question": "Quel est le plus grand océan ?", "reponse_apprenant": "Océan Atlantique", "reponse_correcte": "Océan Pacifique", "note": "FAUX", "categorie": "Géographie" }
+    ],
+    "2": [
+        { "question": "Quelle est la racine carrée de 64 ?", "reponse_apprenant": "8", "reponse_correcte": "8", "note": "VRAI", "categorie": "Mathématiques" },
+        { "question": "Combien font 5*5 ?", "reponse_apprenant": "25", "reponse_correcte": "25", "note": "VRAI", "categorie": "Mathématiques" },
+        { "question": "Quel est le carré de 9 ?", "reponse_apprenant": "81", "reponse_correcte": "81", "note": "VRAI", "categorie": "Mathématiques" }
+    ]
+}

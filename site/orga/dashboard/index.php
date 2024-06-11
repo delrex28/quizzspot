@@ -2,32 +2,39 @@
 session_start();
 include 'query.php'; // Inclure le fichier contenant la fonction db_connect()
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (isset($_POST["email"]) && isset($_POST["password"]) && !empty($_POST["email"]) && !empty($_POST["password"])) {
         $email = $_POST["email"];
-        $password = sha1($_POST["password"]); // Hash du mot de passe avec SHA-1
+        $password = $_POST["password"];
 
-        $query = "
-            SELECT utilisateurs.*, roles.nom_role 
-            FROM utilisateurs 
-            JOIN roles ON utilisateurs.role_user = roles.id_role 
-            WHERE email_user = ?
-        ";
+        // Faire une requête pour vérifier l'email et obtenir le hash du mot de passe
+        $query = "SELECT * FROM utilisateurs WHERE email_user = ?";
         $user = verify_credentials($query, "s", $email);
 
-        if ($user && $password == $user['mdp_user']) {
-            if ($user['nom_role'] === 'Administrateur' || $user['nom_role'] === 'Formateur') {
-                $_SESSION["user"] = $user; // Stocke les informations de l'utilisateur dans la session
-                header("Location: accueil.php");
-                exit();
-            } elseif ($user['nom_role'] === 'Apprenant') {
-                $error = "Vous n'avez pas accès à cette page.";
+        if ($user) {
+            // Vérification avec SHA1 (ancien hachage)
+            if ($user['mdp_user'] === sha1($password)) {
+                // Réhachage du mot de passe avec une méthode plus sécurisée
+                $newHash = password_hash($password, PASSWORD_DEFAULT);
+                update_password_hash($user['id_user'], $newHash);
+                
+                $user['mdp_user'] = $newHash; // Met à jour le hash de l'utilisateur pour la session
+            }
+
+            // Vérification avec password_verify pour le nouveau hash
+            if (password_verify($password, $user['mdp_user'])) {
+                $role = $user['role_user'];
+                if ($role === 3 || $role === 2) {
+                    $_SESSION["user"] = $user;
+                    header("Location: accueil.php");
+                    exit();
+                } elseif ($role === 1) {
+                    $error = "Les apprenants ne peuvent pas se connecter.";
+                } else {
+                    $error = "Rôle utilisateur non reconnu.";
+                }
             } else {
-                $error = "Rôle utilisateur non reconnu.";
+                $error = "Identifiants incorrects. Veuillez réessayer.";
             }
         } else {
             $error = "Identifiants incorrects. Veuillez réessayer.";
@@ -38,25 +45,45 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 
 function verify_credentials($query, ...$params) {
-    $conn = db_connect(); // Appelle la fonction pour établir la connexion à la base de données
+    $conn = db_connect();
     $stmt = $conn->prepare($query);
     if ($stmt === false) {
-        die("Erreur de préparation de la requête: " . $conn->error);
+        echo "Erreur de préparation de la requête: " . $conn->error;
+        exit;
     }
     if ($stmt->bind_param(...$params) === false) {
-        die("Erreur lors de la liaison des paramètres: " . $stmt->error);
+        echo "Erreur lors de la liaison des paramètres: " . $stmt->error;
+        exit;
     }
     if ($stmt->execute() === false) {
-        die("Erreur lors de l'exécution de la requête: " . $stmt->error);
+        echo "Erreur lors de l'exécution de la requête: " . $stmt->error;
+        exit;
     }
     $result = $stmt->get_result();
-    if ($result === false) {
-        die("Erreur lors de la récupération des résultats: " . $stmt->error);
-    }
     $user = $result->fetch_assoc();
     $stmt->close();
     $conn->close();
     return $user;
+}
+
+function update_password_hash($user_id, $new_hash) {
+    $conn = db_connect();
+    $query = "UPDATE utilisateurs SET mdp_user = ? WHERE id_user = ?";
+    $stmt = $conn->prepare($query);
+    if ($stmt === false) {
+        echo "Erreur de préparation de la requête: " . $conn->error;
+        exit;
+    }
+    if ($stmt->bind_param("si", $new_hash, $user_id) === false) {
+        echo "Erreur lors de la liaison des paramètres: " . $stmt->error;
+        exit;
+    }
+    if ($stmt->execute() === false) {
+        echo "Erreur lors de l'exécution de la requête: " . $stmt->error;
+        exit;
+    }
+    $stmt->close();
+    $conn->close();
 }
 ?>
 

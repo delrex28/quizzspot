@@ -1,7 +1,9 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import mysql.connector
 
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})  # Allow CORS for all routes and all origins
 
 # Configuration de la base de données
 db_config = {
@@ -18,7 +20,7 @@ def get_db_connection():
 def validate_code():
     code = request.args.get('code')
     if not code:
-        return jsonify({"error": "Code is required"}), 400
+        return jsonify({"error": "Un code est requis"}), 400
 
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
@@ -37,12 +39,12 @@ def validate_code():
 
     if participants:
         response = {
-            'test': {'code': True},
+            'test':{'code': True},
             'nombre_participants': len(participants),
             'participants': participants
         }
     else:
-        response = {'test': {'code': False}}
+        response = {'test':{'code': False}}
 
     return jsonify(response)
 
@@ -52,7 +54,7 @@ def mark_connected():
     nom = request.args.get('nom')
     prenom = request.args.get('prenom')
     if not nom or not prenom:
-        return jsonify({"error": "Nom and Prenom are required"}), 400
+        return jsonify({"error": "Un nom et prenom sont requis"}), 400
 
     db = get_db_connection()
     cursor = db.cursor()
@@ -63,7 +65,7 @@ def mark_connected():
     cursor.close()
     db.close()
 
-    return jsonify({"status": "success", "message": "Participant marked as connected"})
+    return jsonify({"status": "success", "message": "Participant marquer comme connecter"})
 
 
 @app.route('/unmark_connected', methods=['GET'])
@@ -71,7 +73,7 @@ def unmark_connected():
     nom = request.args.get('nom')
     prenom = request.args.get('prenom')
     if not nom or not prenom:
-        return jsonify({"error": "Nom and Prenom are required"}), 400
+        return jsonify({"error": "Le nom et prenom sont requis"}), 400
 
     db = get_db_connection()
     cursor = db.cursor()
@@ -82,7 +84,7 @@ def unmark_connected():
     cursor.close()
     db.close()
 
-    return jsonify({"status": "success", "message": "Participant marked as disconnected"})
+    return jsonify({"status": "success", "message": "Participant marquer comme déconnecter"})
 
 
 @app.route('/is_participant_available', methods=['GET'])
@@ -90,7 +92,7 @@ def is_participant_available():
     nom = request.args.get('nom')
     prenom = request.args.get('prenom')
     if not nom or not prenom:
-        return jsonify({"error": "Nom and Prenom are required"}), 400
+        return jsonify({"error": "Le nom et le prenom sont requis"}), 400
 
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
@@ -106,59 +108,66 @@ def is_participant_available():
     else:
         return jsonify({'Nom_dispo': 'true'})
 
-
 @app.route('/current_question', methods=['GET'])
 def current_question():
-    token = request.args.get('token')
-    if not token:
-        return jsonify({"error": "Token is required"}), 400
-
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
 
-    query = "SELECT id_question FROM reponses_apprenant WHERE id_user = %s ORDER BY id_reponse_apprenant DESC LIMIT 1"
-    cursor.execute(query, (token,))
-    last_answered_question = cursor.fetchone()
+    # Requête pour récupérer la session de quiz active
+    query = """
+    SELECT s.id_session, q.id_question, q.intitule_question, mq.valeur_moda_quizz as temps_alloue
+    FROM sessions s
+    JOIN questions q ON s.id_quizz = q.id_quizz
+    JOIN modalites_quizz mq ON s.id_quizz = mq.id_quizz
+    WHERE s.bool_session = 2 AND q.bool_question = 2 AND mq.nom_moda_quizz = 'temps'
+    ORDER BY q.id_question ASC
+    LIMIT 1
+    """
+    cursor.execute(query)
+    current_question = cursor.fetchone()
     cursor.close()
     db.close()
 
-    if last_answered_question:
-        current_question = last_answered_question['id_question'] + 1
+    if current_question:
+        response = {
+            'num_question': current_question['id_question'],
+            'question': current_question['intitule_question'],
+            'temps_alloue': current_question['temps_alloue']
+        }
     else:
-        current_question = 1
+        response = {'error': 'Aucune question en cours'}
 
-    return jsonify({'current_question': current_question})
+    return jsonify(response)
 
 
-@app.route('/submit_answer', methods=['POST'])
-def submit_answer():
-    data = request.json
-    token = data.get('token')
-    answer = data.get('answer')
-
-    if not token or not answer:
-        return jsonify({"error": "Token and Answer are required"}), 400
-
-    # Placeholder values, replace with actual logic to fetch ids
-    id_user = 1
-    id_session = 1
-    id_question = 1
-    id_quizz = 1
+@app.route('/has_responded', methods=['GET'])
+def has_responded():
+    token = request.args.get('token')
+    if not token:
+        return jsonify({"error": "Un token et requis"}), 400
 
     db = get_db_connection()
     cursor = db.cursor()
 
-    query = """
-    INSERT INTO reponses_apprenant (id_user, id_session, id_question, id_quizz, id_reponse) 
-    VALUES (%s, %s, %s, %s, %s)
-    """
-    cursor.execute(query, (id_user, id_session, id_question, id_quizz, answer))
-    db.commit()
-    cursor.close()
-    db.close()
+    try:
+        # Requête pour vérifier si l'apprenant a déjà répondu à la question en cours
+        query = """
+        SELECT COUNT(*) FROM reponses_apprenant 
+        WHERE id_user = %s AND id_question = (
+            SELECT id_question FROM reponses_apprenant 
+            ORDER BY id_reponse_apprenant DESC LIMIT 1
+        )
+        """
+        cursor.execute(query, (token,))
+        has_responded = cursor.fetchone()[0] > 0
+    except mysql.connector.Error as err:
+        print("Erreur MySQL:", err)
+        return jsonify({"error": "Erreur lors de la vérification de la réponse de l'apprenant"}), 500
+    finally:
+        cursor.close()
+        db.close()
 
-    return jsonify({'status': 'success', 'message': 'Answer submitted successfully'})
-
+    return jsonify({"has_responded": has_responded})
 
 @app.route('/insert_token', methods=['POST'])
 def insert_token():
@@ -167,39 +176,127 @@ def insert_token():
     nom_complet = data.get('nom_complet')
 
     if not token or not nom_complet:
-        return jsonify({"error": "Token and Nom_complet are required"}), 400
+        return jsonify({"error": "Le Token et le nom_complet sont requis"}), 400
 
     db = get_db_connection()
     cursor = db.cursor()
 
-    query = "UPDATE utilisateurs SET token = %s WHERE CONCAT(nom_user, ' ', prenom_user) = %s"
+    query = "UPDATE utilisateurs SET token = %s WHERE CONCAT(prenom_user, ' ', nom_user ) = %s"
     cursor.execute(query, (token, nom_complet))
     db.commit()
     cursor.close()
     db.close()
 
-    return jsonify({'status': 'success', 'message': 'Token inserted successfully'})
+    return jsonify({'status': 'success', 'message': 'Token inserer avec succes'})
 
-@app.route('/is_quizz_started', methods=['GET'])
-def is_quizz_started():
-    db = get_db_connection()
-    cursor = db.cursor(dictionary=True)
-
+@app.route('/submit_answer', methods=['POST'])
+def submit_answer():
+    data = request.get_json()
+    
+    token = data.get('token')
+    nom_reponse = data.get('nom_reponse')
+    
+    if not token or not nom_reponse:
+        return jsonify({"error": "Token ou nom_reponse manquant"}), 400
+    
     try:
-        query = "SELECT bool_quizz FROM quizzs"
-        cursor.execute(query)
+        db = get_db_connection()
+        cursor = db.cursor(dictionary=True)
+        
+        # Vérifier si le token est valide et récupérer l'id_user correspondant
+        cursor.execute("SELECT id_user FROM utilisateurs WHERE token = %s", (token,))
+        user = cursor.fetchone()
+        
+        if not user:
+            return jsonify({"error": "Token invalide"}), 400
+        
+        id_user = user['id_user']
+        
+        # Récupérer la session active pour l'utilisateur et le quiz
+        cursor.execute("""
+            SELECT id_session, id_quizz
+            FROM sessions WHERE bool_session = 2
+        """,)
         session = cursor.fetchone()
+        
+        if not session:
+            return jsonify({"error": "Aucune session active trouvée pour cet utilisateur"}), 400
+        
+        id_session = session['id_session']
+        id_quizz = session['id_quizz']
+        
+        # Récupérer la question active pour la session
+        cursor.execute("""
+            SELECT id_question
+            FROM questions
+            WHERE id_quizz = %s AND bool_question = 2
+            ORDER BY id_question ASC
+            LIMIT 1
+        """, (id_quizz,))
+        question = cursor.fetchone()
+        
+        if not question:
+            return jsonify({"error": "Aucune question active trouvée"}), 400
+        
+        id_question = question['id_question']
+        
+        # Récupérer l'id_reponse basé sur nom_reponse et id_question
+        cursor.execute("""
+            SELECT id_reponse
+            FROM reponses
+            WHERE nom_reponse = %s AND id_question = %s
+        """, (nom_reponse, id_question))
+        reponse_info = cursor.fetchone()
+        
+        if not reponse_info:
+            return jsonify({"error": "nom_reponse invalide pour la question active"}), 400
+        
+        id_reponse = reponse_info['id_reponse']
+        
+        # Insérer la réponse de l'apprenant dans la base de données
+        cursor.execute("""
+            INSERT INTO reponses_apprenant (id_user, id_session, id_question, id_reponse) 
+            VALUES (%s, %s, %s, %s)
+        """, (id_user, id_session, id_question, id_reponse))
+        db.commit()
+        
+        return jsonify({"status": "success", "message": "Réponse enregistrée avec succès"}), 200
+        
+    except mysql.connector.Error as err:
+        return jsonify({"error": str(err)}), 500
     finally:
         cursor.close()
         db.close()
 
-    if session and session['bool_quizz'] == '2':
-        return jsonify({"quizz_debut": True})
-    else:
-        return jsonify({"quizz_debut": False})
+@app.route('/is_quizz_started', methods=['GET'])
+def is_quizz_started():
+    #try:
+    db = get_db_connection()
+    cursor = db.cursor()
 
-if __name__ == '__main__':
-    app.run(debug=True) 
+    query = "SELECT COUNT(id_quizz) FROM quizzs WHERE bool_quizz = '2' "
+    cursor.execute(query)
+    results = cursor.fetchall()
+    cursor.close()
+    db.close()
+
+    reponse = False
+    if results[0][0] == 1 :
+        reponse = True
+
+    return jsonify({"msg": reponse})
+    
+    
+    #return jsonify({"msg" : resultats})
+    # if session and session.get('bool_quizz') == '2':
+    #     return jsonify({"quizz_debut": True})
+    # else:
+    #     return jsonify({"quizz_debut": False})
+
+    # except mysql.connector.Error as err:
+    #     print("Erreur MySQL:", err)
+    #     return jsonify({"error": f"{err}"}), 500
+
 
 # Endpoint par défaut pour les routes non définies
 @app.route('/')

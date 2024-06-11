@@ -18,14 +18,14 @@ if(isset($_POST['username']) && isset($_POST['password']))
  if($username !== "" && $password !== "")
  {
  $requete = "SELECT count(*) FROM utilisateurs where 
- prenom_user = '".$username."' and mdp_user = '".sha1($password)."' ";
+ email_user = '".$username."' and mdp_user = '".sha1($password)."' ";
  $exec_requete = mysqli_query($db,$requete);
  $reponse = mysqli_fetch_array($exec_requete);
  $count = $reponse['count(*)'];
  if($count!=0) // nom d'utilisateur et mot de passe correctes
  {
  $_SESSION['username'] = $username;
- header('Location: //bilan.quizzspot.fr');
+ header('Location: //bilan.quizzspot.fr/dashboard');
  }
  else
  {

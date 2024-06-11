@@ -12,9 +12,9 @@
             <h2><img src="images/icon-quizzspot.png"><a href="https://www.quizzspot.fr">Quizz:Spot</a></h2>
             
             <nav>
-                <a href="https://www.quizzspot.fr">Acceuil</a>
+                <a href="https://www.quizzspot.fr">Accueil</a>
                 <a href="https://orga.quizzspot.fr">Espace Orga</a>
-                <a href="https://admin.quizzspot.fr">Espace Administrateur</a>
+                <!-- <a href="https://admin.quizzspot.fr">Espace Administrateur</a> -->
                 <a href="https://bilan.quizzspot.fr">Espace Apprenant</a>
 
             </nav>
@@ -33,14 +33,14 @@
             <div class="left">
                 <h1>Pret a gagner avec <br><span>Quizz:Spot</span></h1>
                 <p>Quizz:Spot, c'est une interface de quizz en tout genre pour mobile. Disponible partout même sans connexion. Commence maintenant!"<ion-icon name="rocket-outline"></ion-icon></p>
-                <button type="submit">Commencer<ion-icon name="arrow-forward-outline"></ion-icon></button>
+                <a href="https://bilan.quizzspot.fr"><button>Mes bilans<ion-icon name="arrow-forward-outline"></ion-icon></button></a>
             </div>
             <div class="right">
                 <h1>Se connecter</h1>
                 <form action="verification.php" method="post">
                     <div class="inputbox">
                         <ion-icon name="person-outline"></ion-icon>
-                        <input type="text" placeholder="Nom d'utilisateur" name="username" required>
+                        <input type="email" placeholder="Nom d'utilisateur" name="username" required>
                     </div>
 
                     <div class="inputbox">

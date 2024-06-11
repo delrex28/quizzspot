@@ -31,7 +31,7 @@ $role = $user['role_user'];
 <body>
     <div class="container-fluid">
         <div class="row m-4">
-            <img id="retour" class="col-auto" src="../img/retour.png" alt="Retour" style="width:5%;" onclick="retour()">
+            <img id="retour" class="col-auto" src="img/retour.png" alt="Retour" style="width:5%;" onclick="retour()">
             <div class="col row justify-content-center">
                 <h1 class="col-auto align-self-center" style="margin-right:7%;">Site organisation Quiz</h1>
             </div>
@@ -42,7 +42,7 @@ $role = $user['role_user'];
     </div>
            
     <div class="row justify-content-around mt-5">
-        <?php if ($role === 'administrateur') { ?>
+        <?php if ($role === 3) { ?>
             <div id="admin" class="col-md-3 text-center p-5 border border-dark border-3 bg-success text-white rounded-5">
                 <h4>Administrateur</h4>
             </div>
@@ -50,7 +50,7 @@ $role = $user['role_user'];
         <div id="apprenant" class="col-md-3 text-center p-5 border border-dark border-3 bg-success text-white rounded-5">
             <h4>Résultats des Apprenants</h4>
         </div>
-        <?php if ($role === 'administrateur' || $role === 'formateur') { ?>
+        <?php if ($role === 3 || $role === 2) { ?>
             <div id="formateur" class="col-md-3 text-center p-5 border border-dark border-3 bg-success text-white rounded-5">
                 <h4>Formateur</h4>
             </div>
@@ -59,7 +59,7 @@ $role = $user['role_user'];
 </div>
 
 <script>
-    <?php if ($role === 'administrateur') { ?>
+    <?php if ($role === 3) { ?>
         var adminDiv = document.getElementById('admin');
         adminDiv.addEventListener('click', function() {
             window.location.href = "administrateur/index.php";
@@ -71,7 +71,7 @@ $role = $user['role_user'];
         window.location.href = "apprenant/index.php";
     });
 
-    <?php if ($role === 'administrateur' || $role === 'formateur') { ?>
+    <?php if ($role === 3 || $role === 2) { ?>
         var formateurDiv = document.getElementById('formateur');
         formateurDiv.addEventListener('click', function() {
             window.location.href = "formateur/index.php";

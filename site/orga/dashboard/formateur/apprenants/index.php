@@ -40,7 +40,7 @@ $role = $user['role_user'];
 				<div class="row row-cols-lg-4 justify-content-center">
 					<?php
 					require_once "../query.php";
-                    $json_apprenants=request('SELECT id_user, CONCAT(nom_user," ",prenom_user) FROM utilisateurs where role_user="apprenant";');
+                    $json_apprenants=request('SELECT id_user, CONCAT(nom_user," ",prenom_user) FROM utilisateurs where role_user=1;'); // Modification du rôle utilisateur ici
 					foreach ($json_apprenants as $apprenant){
 						echo '<div class="col-auto m-2 bg-secondary-subtle rounded-4 border border-black p-3">';
 							echo '<div class="row">';
